@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QPushButton,
     QScrollArea,
+    QSizePolicy,
     QVBoxLayout,
     QWidget,
 )
@@ -108,6 +109,7 @@ class ToolCard(QFrame):
         self.tool = tool
         self.setObjectName("toolCard")
         self.setCursor(Qt.PointingHandCursor)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         self.setMinimumHeight(125)
         self.setMaximumHeight(145)
 
@@ -215,6 +217,7 @@ class HubView(QWidget):
         # Scroll Area for Cards Grid
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
+        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
 
         self.grid_container = QWidget()
