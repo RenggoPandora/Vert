@@ -53,6 +53,7 @@
 ## Change Log
 | Date | Version | Notes |
 |---|---|---|
+| 2026-11-22 | v1.0 | Rebuilt splash screen in true minimalism using Plus Jakarta Sans font, 1.5px hairline progress bar, whisper-quiet Hadora Works watermark, 42 automated tests passing. |
 | 2026-11-22 | v0.9 | Rebuilt splash screen from scratch: removed image logo, implemented obsidian monolith with typographic wordmark, glowing laser progress track, smooth cubic-bezier easing, and fade-out transition. |
 | 2026-11-22 | v0.8 | Fixed QueueView converting deadlock, added Hadora Works boot splash, configured Vert.ico desktop icon, implemented on-demand GitHub update checker, wrote Inno Setup script & release builder. 41 tests passing. |
 | 2026-11-22 | v0.7 | UI anti-slop overhaul: eliminated all emojis in favor of crisp SVG vector icons, implemented Light (White/Grey/Blue) and Dark (Black/Grey/Blue) theme switcher, fluid responsive grid layout, 39 automated tests passing. |

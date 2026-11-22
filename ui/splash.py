@@ -1,25 +1,19 @@
-"""High-craft minimalist splash screen with smooth easing animation and Hadora Works watermark."""
+"""Minimalist splash screen using Plus Jakarta Sans with hairline progress animation."""
 
+from pathlib import Path
 from PySide6.QtCore import (
     Property,
     QEasingCurve,
-    QPointF,
     QRectF,
     QPropertyAnimation,
     Qt,
-    QTimer,
-    QVariantAnimation,
     Signal,
 )
 from PySide6.QtGui import (
-    QBrush,
     QColor,
     QFont,
-    QLinearGradient,
+    QFontDatabase,
     QPainter,
-    QPainterPath,
-    QPen,
-    QRadialGradient,
 )
 from PySide6.QtWidgets import (
     QFrame,
@@ -30,13 +24,29 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+ROOT_DIR = Path(__file__).resolve().parent.parent
+FONT_PATH = ROOT_DIR / "assets" / "fonts" / "PlusJakartaSans-Bold.ttf"
 
-class GlowingProgressTrack(QWidget):
-    """Custom painted smooth glowing progress track."""
+
+def load_jakarta_font() -> str:
+    """Ensure Plus Jakarta Sans is loaded into QFontDatabase."""
+    if FONT_PATH.exists():
+        QFontDatabase.addApplicationFont(str(FONT_PATH))
+    # Return family name if available, fallback to Segoe UI / sans-serif
+    families = QFontDatabase.families()
+    for fam in families:
+        if "jakarta" in fam.lower():
+            return fam
+    return "Segoe UI"
+
+
+class HairlineProgress(QWidget):
+    """Ultra-clean 1.5px hairline progress indicator."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setFixedHeight(6)
+        self.setFixedHeight(2)
+        self.setFixedWidth(140)
         self._progress = 0.0
 
     def get_progress(self) -> float:
@@ -52,157 +62,96 @@ class GlowingProgressTrack(QWidget):
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
 
-        w = self.width()
-        h = self.height()
-        radius = h / 2.0
+        w = float(self.width())
+        h = float(self.height())
 
-        # Background track
-        track_rect = QRectF(0, 0, w, h)
+        # Subdued track
         p.setPen(Qt.NoPen)
-        p.setBrush(QColor(15, 23, 42, 220))  # Slate 900
-        p.drawRoundedRect(track_rect, radius, radius)
+        p.setBrush(QColor(30, 41, 59))  # Slate 800
+        p.drawRoundedRect(QRectF(0, 0, w, h), 1.0, 1.0)
 
-        # Active glowing progress
+        # Active hairline fill (minimalist royal blue)
         active_w = w * self._progress
-        if active_w > 1:
-            active_rect = QRectF(0, 0, active_w, h)
-
-            # Gradient from deep cyan-blue to vivid electric blue
-            grad = QLinearGradient(0, 0, active_w, 0)
-            grad.setColorAt(0.0, QColor(2, 132, 199))   # Sky 600
-            grad.setColorAt(0.7, QColor(37, 99, 235))   # Blue 600
-            grad.setColorAt(1.0, QColor(96, 165, 250))  # Blue 400 (glow tip)
-
-            p.setBrush(grad)
-            p.drawRoundedRect(active_rect, radius, radius)
-
-            # Glow bead at the leading tip
-            tip_x = active_w
-            tip_grad = QRadialGradient(QPointF(tip_x, h / 2.0), 8)
-            tip_grad.setColorAt(0.0, QColor(147, 197, 253, 200))
-            tip_grad.setColorAt(1.0, QColor(37, 99, 235, 0))
-            p.setBrush(tip_grad)
-            p.drawEllipse(QPointF(tip_x, h / 2.0), 8, 8)
+        if active_w > 0:
+            p.setBrush(QColor(59, 130, 246))  # Blue 500
+            p.drawRoundedRect(QRectF(0, 0, active_w, h), 1.0, 1.0)
 
         p.end()
 
 
 class SplashScreen(QWidget):
-    """Sleek obsidian monolithic splash with smooth cubic-bezier transitions."""
+    """Minimalist, quiet splash screen."""
 
     ready_to_launch = Signal()
 
     def __init__(self):
         super().__init__()
+        self.font_family = load_jakarta_font()
+
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SplashScreen)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
-        self.setFixedSize(520, 310)
+        self.setFixedSize(380, 220)
 
         self._init_ui()
         self._center_on_screen()
 
     def _init_ui(self):
         root = QVBoxLayout(self)
-        root.setContentsMargins(18, 18, 18, 18)
+        root.setContentsMargins(14, 14, 14, 14)
 
-        # Monolithic Card Container
-        self.card = QFrame()
-        self.card.setObjectName("splashMonolith")
-        self.card.setStyleSheet("""
-            #splashMonolith {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #101726, stop:1 #06090F);
+        # Minimal Dark Card
+        card = QFrame()
+        card.setObjectName("minimalCard")
+        card.setStyleSheet("""
+            #minimalCard {
+                background-color: #0A0D14;
                 border: 1px solid #1E293B;
-                border-top: 1px solid #334155;
-                border-radius: 18px;
+                border-radius: 14px;
             }
         """)
 
-        # Soft deep elevation shadow
-        shadow = QGraphicsDropShadowEffect(self.card)
-        shadow.setBlurRadius(42)
-        shadow.setOffset(0, 10)
-        shadow.setColor(QColor(0, 0, 0, 210))
-        self.card.setGraphicsEffect(shadow)
+        # Ambient soft shadow
+        shadow = QGraphicsDropShadowEffect(card)
+        shadow.setBlurRadius(28)
+        shadow.setOffset(0, 8)
+        shadow.setColor(QColor(0, 0, 0, 180))
+        card.setGraphicsEffect(shadow)
 
-        layout = QVBoxLayout(self.card)
-        layout.setContentsMargins(36, 32, 36, 28)
-        layout.setSpacing(8)
+        layout = QVBoxLayout(card)
+        layout.setContentsMargins(24, 32, 24, 24)
         layout.setAlignment(Qt.AlignCenter)
-
-        # Minimal Top Badge
-        badge_box = QHBoxLayout()
-        badge_box.setAlignment(Qt.AlignCenter)
-        badge = QLabel("100% OFFLINE  •  ZERO-CLOUD")
-        badge.setStyleSheet("""
-            color: #38BDF8;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            padding: 4px 10px;
-            background-color: rgba(14, 165, 233, 0.08);
-            border: 1px solid rgba(56, 189, 248, 0.25);
-            border-radius: 12px;
-        """)
-        badge_box.addWidget(badge)
-        layout.addLayout(badge_box)
-
-        layout.addSpacing(10)
-
-        # Center Typographic Wordmark (Zero image / no slop)
-        title = QLabel("VERT")
-        title.setAlignment(Qt.AlignCenter)
-        title.setStyleSheet("""
-            font-size: 38px;
-            font-weight: 900;
-            color: #F8FAFC;
-            letter-spacing: 6px;
-            font-family: 'Segoe UI', -apple-system, sans-serif;
-        """)
-        layout.addWidget(title)
-
-        subtitle = QLabel("Universal Desktop File Converter & PDF Suite")
-        subtitle.setAlignment(Qt.AlignCenter)
-        subtitle.setStyleSheet("""
-            font-size: 12px;
-            font-weight: 500;
-            color: #64748B;
-            letter-spacing: 0.5px;
-        """)
-        layout.addWidget(subtitle)
-
-        layout.addSpacing(18)
-
-        # Animated Glowing Progress Bar
-        self.track = GlowingProgressTrack()
-        layout.addWidget(self.track)
-
-        layout.addSpacing(6)
-
-        # Dynamic Status text
-        self.status_lbl = QLabel("Initializing local conversion workspace...")
-        self.status_lbl.setAlignment(Qt.AlignCenter)
-        self.status_lbl.setStyleSheet("""
-            font-size: 11px;
-            font-weight: 500;
-            color: #94A3B8;
-        """)
-        layout.addWidget(self.status_lbl)
+        layout.setSpacing(0)
 
         layout.addStretch()
 
-        # Discreet Watermark
-        watermark = QLabel("BY HADORA WORKS")
-        watermark.setAlignment(Qt.AlignCenter)
-        watermark.setStyleSheet("""
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 3px;
-            color: #3B82F6;
-            opacity: 0.8;
-        """)
-        layout.addWidget(watermark)
+        # Wordmark: Vert (Plus Jakarta Sans)
+        self.title_lbl = QLabel("Vert")
+        self.title_lbl.setAlignment(Qt.AlignCenter)
+        font = QFont(self.font_family, 32, QFont.Bold)
+        self.title_lbl.setFont(font)
+        self.title_lbl.setStyleSheet("color: #F8FAFC; letter-spacing: 0.5px;")
+        layout.addWidget(self.title_lbl)
 
-        root.addWidget(self.card)
+        layout.addSpacing(20)
+
+        # Hairline progress bar
+        progress_container = QHBoxLayout()
+        progress_container.setAlignment(Qt.AlignCenter)
+        self.track = HairlineProgress()
+        progress_container.addWidget(self.track)
+        layout.addLayout(progress_container)
+
+        layout.addStretch()
+
+        # Whisper-quiet watermark: Hadora Works
+        self.watermark_lbl = QLabel("Hadora Works")
+        self.watermark_lbl.setAlignment(Qt.AlignCenter)
+        wm_font = QFont(self.font_family, 10, QFont.Medium)
+        self.watermark_lbl.setFont(wm_font)
+        self.watermark_lbl.setStyleSheet("color: #475569; letter-spacing: 1.5px;")
+        layout.addWidget(self.watermark_lbl)
+
+        root.addWidget(card)
 
     def _center_on_screen(self):
         screen = self.screen()
@@ -212,44 +161,32 @@ class SplashScreen(QWidget):
             y = (geom.height() - self.height()) // 2
             self.move(x, y)
 
-    def start_animation(self, duration_ms: int = 1400):
-        """Run smooth cubic easing progress and fade out cleanly."""
-        # 1. Fade-in window opacity
+    def start_animation(self, duration_ms: int = 950):
+        """Clean cubic ease-in-out hairline progress with smooth fade-out."""
+        # Window fade-in
         self.setWindowOpacity(0.0)
         self.fade_in = QPropertyAnimation(self, b"windowOpacity")
-        self.fade_in.setDuration(220)
+        self.fade_in.setDuration(160)
         self.fade_in.setStartValue(0.0)
         self.fade_in.setEndValue(1.0)
         self.fade_in.start()
 
-        # 2. Smooth cubic progress animation
+        # Hairline progress animation
         self.progress_anim = QPropertyAnimation(self.track, b"progress")
         self.progress_anim.setDuration(duration_ms)
         self.progress_anim.setStartValue(0.0)
         self.progress_anim.setEndValue(1.0)
         self.progress_anim.setEasingCurve(QEasingCurve.InOutCubic)
 
-        # Dynamic status updates at smooth intervals
-        def update_status(val: float):
-            if val < 0.35:
-                self.status_lbl.setText("Initializing local conversion workspace...")
-            elif val < 0.75:
-                self.status_lbl.setText("Mounting offline processing engines...")
-            elif val < 0.95:
-                self.status_lbl.setText("Preparing tools...")
-            else:
-                self.status_lbl.setText("Ready.")
-
-        self.progress_anim.valueChanged.connect(lambda v: update_status(float(v)))
         self.progress_anim.finished.connect(self._fade_out_and_finish)
         self.progress_anim.start()
 
     def _fade_out_and_finish(self):
         self.fade_out = QPropertyAnimation(self, b"windowOpacity")
-        self.fade_out.setDuration(280)
+        self.fade_out.setDuration(200)
         self.fade_out.setStartValue(1.0)
         self.fade_out.setEndValue(0.0)
-        self.fade_out.setEasingCurve(QEasingCurve.InCubic)
+        self.fade_out.setEasingCurve(QEasingCurve.InQuad)
 
         def on_fade_done():
             self.close()

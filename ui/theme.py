@@ -15,7 +15,7 @@ def get_stylesheet(mode: ThemeMode = ThemeMode.DARK) -> str:
         QMainWindow, QWidget {
             background-color: #F8FAFC;
             color: #0F172A;
-            font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: "Plus Jakarta Sans", "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
             font-size: 13px;
         }
 
@@ -323,7 +323,7 @@ def get_stylesheet(mode: ThemeMode = ThemeMode.DARK) -> str:
     QMainWindow, QWidget {
         background-color: #0B0F17;
         color: #F8FAFC;
-        font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: "Plus Jakarta Sans", "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
         font-size: 13px;
     }
 

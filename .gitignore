@@ -27,6 +27,7 @@ wheels/
 .installed.cfg
 *.egg
 *.spec
+!vert.spec
 
 # Bundled Engines (Local binary cache, fetched via scripts/download_engines.py)
 engines/*

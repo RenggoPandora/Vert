@@ -162,3 +162,21 @@ def test_vector_icons_generation():
         assert pix.height() == 24
 
 
+def test_minimalist_splash_screen(qapp):
+    from ui.splash import SplashScreen, load_jakarta_font
+
+    fam = load_jakarta_font()
+    assert fam is not None
+
+    splash = SplashScreen()
+    assert splash.title_lbl.text() == "Vert"
+    assert splash.watermark_lbl.text() == "Hadora Works"
+    assert splash.track._progress == 0.0
+
+    splash.track.set_progress(0.75)
+    assert splash.track.get_progress() == 0.75
+
+    splash.close()
+
+
+
