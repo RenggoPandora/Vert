@@ -37,9 +37,13 @@ Vert runs proven conversion engines locally on your machine with **zero telemetr
 
 ## Installation (For Users)
 
-1. Download the latest installer **`Vert_Setup.exe`** from [GitHub Releases](https://github.com/RenggoPandora/Vert/releases).
+1. Download the latest installer **`Vert_Setup.exe`** (or `Vert-v1.0.0-windows-portable.zip`) from [GitHub Releases](https://github.com/RenggoPandora/Vert/releases).
 2. Run the installer. A Desktop shortcut and Start Menu entry will be created automatically.
-3. Launch Vert. You can disconnect from Wi-Fi — Vert is 100% offline.
+3. **If Windows 11 Smart App Control flags the file:**
+   * Right-click `Vert_Setup.exe` → Select **Properties**.
+   * Under the **General** tab, check the box **Unblock** at the bottom → Click **OK**.
+   * *(Windows flags newly published unsigned executables until they establish cloud reputation).*
+4. Launch Vert. You can disconnect from Wi-Fi — Vert is 100% offline.
 
 ---
 

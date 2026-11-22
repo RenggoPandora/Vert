@@ -35,9 +35,11 @@ No more. **Vert** is here, and it does all of that straight on your PC — 100% 
 
 ### 📦 How to Install
 
-1. Grab **`Vert_Setup.exe`** from the assets below.
+1. Grab **`Vert_Setup.exe`** (or the portable `.zip`) from the assets below.
 2. Run the installer (it puts a clean shortcut right on your desktop).
-3. Turn off your Wi-Fi if you want to be extra paranoid.
+3. If Windows 11 Smart App Control shows a block notice:
+   * **Right-click `Vert_Setup.exe`** → **Properties** → check **`Unblock`** at the bottom → **OK**.
+   * *(Why? Windows flags newly released unsigned open-source binaries until they gain cloud reputation).*
 4. Convert files to your heart's content.
 
 ---
