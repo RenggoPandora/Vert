@@ -184,6 +184,36 @@ def split_pdf(
     return created_files
 
 
+def extract_pages_to_pdf(
+    src_pdf: Path | str,
+    page_numbers: Sequence[int],
+    dst_pdf: Path | str,
+) -> Path:
+    """Extract specified 1-based page numbers into a single new PDF document."""
+    if not page_numbers:
+        raise ValueError("At least one page number must be selected.")
+
+    src = Path(src_pdf).resolve()
+    dst = Path(dst_pdf).resolve()
+    dst.parent.mkdir(parents=True, exist_ok=True)
+
+    reader = PdfReader(str(src))
+    total_pages = len(reader.pages)
+
+    writer = PdfWriter()
+    for num in page_numbers:
+        if 1 <= num <= total_pages:
+            writer.add_page(reader.pages[num - 1])
+
+    if len(writer.pages) == 0:
+        raise ValueError("None of the specified page numbers exist in the source PDF.")
+
+    with open(dst, "wb") as f:
+        writer.write(f)
+
+    return dst
+
+
 def images_to_pdf(image_paths: Sequence[Path | str], dst_pdf: Path | str) -> Path:
     """Combine multiple images into a single multi-page PDF document."""
     if not image_paths:

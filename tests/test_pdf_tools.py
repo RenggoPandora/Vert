@@ -112,3 +112,17 @@ def test_images_to_pdf(tmp_path):
     reader = PdfReader(str(res))
     assert len(reader.pages) == 2
 
+
+def test_extract_pages_to_pdf(tmp_path):
+    from core.pdf_tools import extract_pages_to_pdf
+
+    src_pdf = _create_sample_pdf(tmp_path / "original.pdf", pages=5)
+    dst_pdf = tmp_path / "extracted_subset.pdf"
+
+    res = extract_pages_to_pdf(src_pdf, [1, 3, 5], dst_pdf)
+    assert res.exists()
+
+    reader = PdfReader(str(res))
+    assert len(reader.pages) == 3
+
+

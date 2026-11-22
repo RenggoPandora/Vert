@@ -111,10 +111,10 @@ class MainWindow(QMainWindow):
         self.back_btn.setVisible(True)
 
         if tool_id == "merge_pdf":
-            self.pdf_tools_view.tabs.setCurrentIndex(0)
+            self.pdf_tools_view.tabs.setCurrentIndex(1)
             self.stack.setCurrentWidget(self.pdf_tools_view)
         elif tool_id == "split_pdf":
-            self.pdf_tools_view.tabs.setCurrentIndex(1)
+            self.pdf_tools_view.tabs.setCurrentIndex(0)
             self.stack.setCurrentWidget(self.pdf_tools_view)
         elif tool_id == "images_to_pdf":
             self.stack.setCurrentWidget(self.images_to_pdf_view)

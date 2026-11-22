@@ -91,3 +91,34 @@ def test_pdf_tools_view_tabs(qapp):
     pv = PdfToolsView()
     assert pv.tabs.count() == 2
     pv.close()
+
+
+def test_split_tab_preview_loading(qapp, tmp_path):
+    import pymupdf as fitz
+    from ui.pdf_tools_view import SplitTab
+
+    # Create 3-page test pdf
+    pdf_path = tmp_path / "test_preview.pdf"
+    doc = fitz.open()
+    for i in range(3):
+        p = doc.new_page(width=300, height=400)
+        p.insert_text((40, 40), f"Page Number {i + 1}")
+    doc.save(str(pdf_path))
+    doc.close()
+
+    split_tab = SplitTab()
+    split_tab.load_pdf(pdf_path)
+
+    assert len(split_tab.page_cards) == 3
+    assert split_tab._get_selected_pages() == [1, 2, 3]
+
+    # Test deselect
+    split_tab._set_all_selection(False)
+    assert split_tab._get_selected_pages() == []
+
+    # Toggle page 2
+    split_tab.page_cards[2].set_checked(True)
+    assert split_tab._get_selected_pages() == [2]
+
+    split_tab.close()
+
