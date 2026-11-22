@@ -31,6 +31,7 @@ wheels/
 # Bundled Engines (Local binary cache, fetched via scripts/download_engines.py)
 engines/*
 !engines/.gitkeep
+!Vert.ico
 *.exe
 *.zip
 *.7z

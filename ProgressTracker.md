@@ -53,6 +53,7 @@
 ## Change Log
 | Date | Version | Notes |
 |---|---|---|
+| 2026-11-22 | v0.8 | Fixed QueueView converting deadlock, added Hadora Works boot splash with Vert.png watermark, configured Vert.ico desktop icon, implemented on-demand GitHub update checker, wrote Inno Setup script & release builder. 41 tests passing. |
 | 2026-11-22 | v0.7 | UI anti-slop overhaul: eliminated all emojis in favor of crisp SVG vector icons, implemented Light (White/Grey/Blue) and Dark (Black/Grey/Blue) theme switcher, fluid responsive grid layout, 39 automated tests passing. |
 | 2026-11-22 | v0.6 | Added visual page preview to Split PDF with interactive thumbnail cards, multi-mode extraction (single combined PDF vs. separate files), and updated test suite (36 tests passing). |
 | 2026-11-22 | v0.5 | Added iLovePDF-style Tools Hub dashboard with category filters & search, dedicated Images-to-PDF tool view and backend, updated unit tests to 34 passing. |

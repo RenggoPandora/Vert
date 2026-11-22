@@ -16,12 +16,17 @@ from PySide6.QtWidgets import (
 
 from core.media_converter import find_ffmpeg_binary
 from core.office_converter import find_libreoffice_binary
+from core.updater import UpdateCheckTask
+from core.version import GITHUB_REPO, __version__
 from ui.hub_view import HubView
 from ui.icons import get_icon, get_pixmap
 from ui.images_to_pdf_view import ImagesToPdfView
 from ui.pdf_tools_view import PdfToolsView
 from ui.queue_view import QueueView
 from ui.theme import ThemeMode, get_stylesheet
+import webbrowser
+from PySide6.QtCore import QThreadPool
+from PySide6.QtWidgets import QMessageBox
 
 
 class MainWindow(QMainWindow):
@@ -82,6 +87,12 @@ class MainWindow(QMainWindow):
         self.back_btn.setVisible(False)
         self.back_btn.clicked.connect(self.show_hub)
         header_layout.addWidget(self.back_btn)
+
+        # Update Checker Button
+        self.update_btn = QPushButton("Check for Updates")
+        self.update_btn.setToolTip("Check GitHub for the latest release")
+        self.update_btn.clicked.connect(self.check_for_updates)
+        header_layout.addWidget(self.update_btn)
 
         # Theme Switcher Button
         self.theme_btn = QPushButton()
@@ -154,6 +165,48 @@ class MainWindow(QMainWindow):
             self.stack.setCurrentWidget(self.images_to_pdf_view)
         else:
             self.stack.setCurrentWidget(self.queue_view)
+
+    def check_for_updates(self):
+        self.update_btn.setEnabled(False)
+        self.update_btn.setText("Checking...")
+
+        task = UpdateCheckTask()
+        task.signals.checked.connect(self._on_update_checked)
+        task.signals.failed.connect(self._on_update_failed)
+        QThreadPool.globalInstance().start(task)
+
+    def _on_update_checked(self, has_update: bool, tag: str, url: str, body: str):
+        self.update_btn.setEnabled(True)
+        self.update_btn.setText("Check for Updates")
+
+        if has_update:
+            notes = f"\n\nRelease Notes:\n{body[:300]}..." if body else ""
+            reply = QMessageBox.information(
+                self,
+                "Update Available!",
+                f"A new version of Vert ({tag}) is available!\n"
+                f"Your current version: v{__version__}{notes}\n\n"
+                f"Would you like to open the download page?",
+                QMessageBox.Yes | QMessageBox.No,
+            )
+            if reply == QMessageBox.Yes:
+                webbrowser.open(url)
+        else:
+            QMessageBox.information(
+                self,
+                "Up to Date",
+                f"You are running the latest version of Vert (v{__version__})!",
+            )
+
+    def _on_update_failed(self, err_msg: str):
+        self.update_btn.setEnabled(True)
+        self.update_btn.setText("Check for Updates")
+        QMessageBox.warning(
+            self,
+            "Update Check Failed",
+            f"Could not connect to GitHub to check for updates.\n"
+            f"Please ensure internet access is available and try again.\n\nDetails: {err_msg}",
+        )
 
     def _update_engine_status(self):
         lo_found = find_libreoffice_binary() is not None

@@ -102,7 +102,10 @@ class QueueView(QWidget):
         super().__init__(parent)
         self.thread_pool = QThreadPool.globalInstance()
         self.items: dict[str, dict] = {}  # job_id -> metadata
+        self.active_tasks: dict[str, ConversionTask] = {}  # retain task instances to prevent GC
         self.custom_output_dir: Optional[Path] = None
+        self.total_jobs_in_batch = 0
+        self.completed_jobs_count = 0
 
         self._init_ui()
 
@@ -272,12 +275,11 @@ class QueueView(QWidget):
             QMessageBox.information(self, "Nothing to Convert", "No queued files to convert.")
             return
 
+        self.total_jobs_in_batch = len(queued_jobs)
+        self.completed_jobs_count = 0
         self.progress_bar.setVisible(True)
         self.progress_bar.setValue(0)
         self.convert_all_btn.setEnabled(False)
-
-        total = len(queued_jobs)
-        completed = [0]
 
         for jid, data in queued_jobs:
             src = data["src_path"]
@@ -288,13 +290,12 @@ class QueueView(QWidget):
             job = ConversionJob(job_id=jid, src_path=src, dst_path=dst)
             task = ConversionTask(job)
 
+            # Store reference to prevent GC while executing
+            self.active_tasks[jid] = task
+
             task.signals.started.connect(self._on_job_started)
-            task.signals.finished.connect(
-                lambda j, out, tot=total, comp=completed: self._on_job_finished(j, out, tot, comp)
-            )
-            task.signals.failed.connect(
-                lambda j, err, tot=total, comp=completed: self._on_job_failed(j, err, tot, comp)
-            )
+            task.signals.finished.connect(self._on_job_finished)
+            task.signals.failed.connect(self._on_job_failed)
 
             self.thread_pool.start(task)
 
@@ -307,10 +308,13 @@ class QueueView(QWidget):
                 item.setText("Converting...")
                 item.setForeground(Qt.cyan)
 
-    def _on_job_finished(self, job_id: str, out_path: str, total: int, completed: list[int]):
-        completed[0] += 1
-        pct = int((completed[0] / total) * 100)
+    def _on_job_finished(self, job_id: str, out_path: str):
+        self.completed_jobs_count += 1
+        pct = int((self.completed_jobs_count / max(1, self.total_jobs_in_batch)) * 100)
         self.progress_bar.setValue(pct)
+
+        # Release task reference safely
+        self.active_tasks.pop(job_id, None)
 
         if job_id in self.items:
             row = self.items[job_id]["row"]
@@ -328,13 +332,17 @@ class QueueView(QWidget):
             open_btn.clicked.connect(lambda _, p=out_path: self._open_path(p))
             self.table.setCellWidget(row, 4, open_btn)
 
-        if completed[0] >= total:
+        if self.completed_jobs_count >= self.total_jobs_in_batch:
             self.convert_all_btn.setEnabled(True)
+            self._notify_batch_completion()
 
-    def _on_job_failed(self, job_id: str, error_msg: str, total: int, completed: list[int]):
-        completed[0] += 1
-        pct = int((completed[0] / total) * 100)
+    def _on_job_failed(self, job_id: str, error_msg: str):
+        self.completed_jobs_count += 1
+        pct = int((self.completed_jobs_count / max(1, self.total_jobs_in_batch)) * 100)
         self.progress_bar.setValue(pct)
+
+        # Release task reference safely
+        self.active_tasks.pop(job_id, None)
 
         if job_id in self.items:
             row = self.items[job_id]["row"]
@@ -346,8 +354,25 @@ class QueueView(QWidget):
                 status_item.setForeground(Qt.red)
                 status_item.setToolTip(error_msg)
 
-        if completed[0] >= total:
+        if self.completed_jobs_count >= self.total_jobs_in_batch:
             self.convert_all_btn.setEnabled(True)
+            self._notify_batch_completion()
+
+    def _notify_batch_completion(self):
+        done_count = sum(1 for d in self.items.values() if d["status"] == "Done")
+        failed_count = sum(1 for d in self.items.values() if d["status"] == "Failed")
+        if done_count > 0 and failed_count == 0:
+            QMessageBox.information(
+                self,
+                "Conversion Complete",
+                f"Successfully converted {done_count} file(s)!",
+            )
+        elif failed_count > 0:
+            QMessageBox.warning(
+                self,
+                "Conversion Finished with Issues",
+                f"Finished: {done_count} converted, {failed_count} failed.\nHover over 'Failed' status to view error details.",
+            )
 
     def _open_path(self, path_str: str):
         path = Path(path_str)

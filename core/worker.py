@@ -97,6 +97,7 @@ class ConversionTask(QRunnable):
         super().__init__()
         self.job = job
         self.signals = JobSignals()
+        self.setAutoDelete(False)  # Retain task memory until caller releases it
 
     def run(self):
         self.signals.started.emit(self.job.job_id)
