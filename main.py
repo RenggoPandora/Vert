@@ -9,8 +9,9 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
 from ui.main_window import MainWindow
-from ui.splash import SplashScreen
+from ui.splash import SplashScreen, load_jakarta_font
 from ui.theme import ThemeMode, get_stylesheet
+from PySide6.QtGui import QFont
 
 ROOT_DIR = Path(__file__).resolve().parent
 
@@ -31,6 +32,10 @@ def main():
     app = QApplication(sys.argv)
     app.setApplicationName("Vert")
     app.setOrganizationName("Hadora Works")
+
+    # Load and register Plus Jakarta Sans globally as default app font
+    font_family = load_jakarta_font()
+    app.setFont(QFont(font_family, 10))
 
     # Set application icon (Vert.ico)
     ico_path = ROOT_DIR / "Vert.ico"
