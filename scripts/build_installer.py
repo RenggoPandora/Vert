@@ -29,6 +29,7 @@ def find_inno_compiler() -> Path | None:
 
     # Check standard install locations
     candidates = [
+        Path(os.path.expanduser(r"~\AppData\Local\Programs\Inno Setup 6\ISCC.exe")),
         Path(r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe"),
         Path(r"C:\Program Files\Inno Setup 6\ISCC.exe"),
         Path(r"C:\Program Files (x86)\Inno Setup 5\ISCC.exe"),

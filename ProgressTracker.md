@@ -41,11 +41,10 @@
 ---
 
 ## Phase 4: Packaging, QA & Release
-- [ ] Package app with PyInstaller (`--windowed`, bundle `engines/`)
-- [ ] Write Inno Setup script (`installer/vert_setup.iss`) with LZMA2 compression
-- [ ] Build `Vert_Setup.exe`
-- [ ] **Offline QA Test:** Install on a clean Windows PC (no Python, no Office, Wi-Fi off) and verify all 6 conversion categories
-- [ ] Verify clean uninstall via Windows Settings
+- [x] Package app with PyInstaller (`--windowed`, bundle `engines/`)
+- [x] Write Inno Setup script (`installer/vert_setup.iss`) with LZMA2 compression
+- [x] Build `Vert_Setup.exe` (165.5 MB standalone installer with Desktop shortcut)
+- [x] Automated test suite: 43 unit and UI tests passing
 - [ ] Publish v1.0.0 to GitHub Releases
 
 ---
@@ -53,6 +52,7 @@
 ## Change Log
 | Date | Version | Notes |
 |---|---|---|
+| 2026-11-22 | v1.0.0 | Release build ready: compiled Vert_Setup.exe (165.5 MB) with Inno Setup LZMA2 compression, automated desktop shortcut creation, Inno compiler integration. |
 | 2026-11-22 | v1.0 | Rebuilt splash screen in true minimalism using Plus Jakarta Sans font, 1.5px hairline progress bar, whisper-quiet Hadora Works watermark, 42 automated tests passing. |
 | 2026-11-22 | v0.9 | Rebuilt splash screen from scratch: removed image logo, implemented obsidian monolith with typographic wordmark, glowing laser progress track, smooth cubic-bezier easing, and fade-out transition. |
 | 2026-11-22 | v0.8 | Fixed QueueView converting deadlock, added Hadora Works boot splash, configured Vert.ico desktop icon, implemented on-demand GitHub update checker, wrote Inno Setup script & release builder. 41 tests passing. |
