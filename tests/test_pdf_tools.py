@@ -92,3 +92,23 @@ def test_pdf_to_docx(tmp_path):
     assert out.exists()
     doc = Document(str(out))
     assert len(doc.paragraphs) > 0
+
+
+def test_images_to_pdf(tmp_path):
+    from PIL import Image
+    from core.pdf_tools import images_to_pdf
+
+    img1 = tmp_path / "pic1.jpg"
+    img2 = tmp_path / "pic2.png"
+
+    Image.new("RGB", (100, 150), (255, 0, 0)).save(img1, "JPEG")
+    Image.new("RGB", (200, 100), (0, 0, 255)).save(img2, "PNG")
+
+    out_pdf = tmp_path / "combined.pdf"
+    res = images_to_pdf([img1, img2], out_pdf)
+
+    assert res.exists()
+    assert res.stat().st_size > 0
+    reader = PdfReader(str(res))
+    assert len(reader.pages) == 2
+

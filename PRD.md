@@ -44,9 +44,11 @@
 * **FR-08b (PDF Toolbox Mode):** Dedicated interface for N:1 and 1:N PDF workflows:
   * **Merge Mode:** Orderable list of input PDFs with drag-reorder and single merged output.
   * **Split Mode:** Single input PDF with page range selector (e.g., `1-3, 5, 8-10`) or "Extract all pages".
+* **FR-08c (Images to PDF):** Dedicated tool allowing users to select/drop multiple images (JPG, PNG, WebP, BMP, TIFF), arrange page sequence, and export a unified PDF.
 * **FR-09 (Safe Naming):** Never overwrite an existing file. If `report.pdf` already exists, save as `report (1).pdf`.
 * **FR-10 (Clear Error Messages):** Translate engine failures into plain-language messages (e.g., *"File is open in another program"*, *"Password-protected PDFs are not supported"*, *"PDF contains no tabular data"*).
 * **FR-11 (Theme Support):** Clean, modern UI with Light and Dark mode support.
+* **FR-12 (iLovePDF-Style Tools Hub):** Card-based dashboard categorizing workflows (`PDF`, `Office`, `Images`, `Media`, `Data`) with live search and 1-click launch.
 
 ---
 

@@ -182,3 +182,32 @@ def split_pdf(
         created_files.append(out_file)
 
     return created_files
+
+
+def images_to_pdf(image_paths: Sequence[Path | str], dst_pdf: Path | str) -> Path:
+    """Combine multiple images into a single multi-page PDF document."""
+    if not image_paths:
+        raise ValueError("At least one image is required to build a PDF.")
+
+    dst = Path(dst_pdf).resolve()
+    dst.parent.mkdir(parents=True, exist_ok=True)
+
+    doc = fitz.open()
+    try:
+        for p in image_paths:
+            path_obj = Path(p).resolve()
+            if not path_obj.exists():
+                raise FileNotFoundError(f"Image not found: {path_obj}")
+            img_doc = fitz.open(str(path_obj))
+            pdf_bytes = img_doc.convert_to_pdf()
+            img_doc.close()
+            img_pdf = fitz.open("pdf", pdf_bytes)
+            doc.insert_pdf(img_pdf)
+            img_pdf.close()
+
+        doc.save(str(dst))
+    finally:
+        doc.close()
+
+    return dst
+

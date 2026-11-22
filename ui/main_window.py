@@ -1,20 +1,22 @@
-"""Main application window for Vert."""
+"""Main application window for Vert with iLovePDF-style Tools Hub and dedicated workflows."""
 
 from pathlib import Path
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QMainWindow,
+    QPushButton,
+    QStackedWidget,
     QStatusBar,
-    QTabWidget,
     QVBoxLayout,
     QWidget,
 )
 
 from core.media_converter import find_ffmpeg_binary
 from core.office_converter import find_libreoffice_binary
+from ui.hub_view import HubView
+from ui.images_to_pdf_view import ImagesToPdfView
 from ui.pdf_tools_view import PdfToolsView
 from ui.queue_view import QueueView
 
@@ -22,9 +24,9 @@ from ui.queue_view import QueueView
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Vert — 100% Offline Desktop File Converter")
-        self.resize(920, 640)
-        self.setMinimumSize(800, 520)
+        self.setWindowTitle("Vert — 100% Offline Desktop File Converter & PDF Suite")
+        self.resize(1000, 700)
+        self.setMinimumSize(880, 560)
 
         self._init_ui()
         self._update_engine_status()
@@ -34,8 +36,8 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
 
         root_layout = QVBoxLayout(central_widget)
-        root_layout.setContentsMargins(16, 16, 16, 16)
-        root_layout.setSpacing(12)
+        root_layout.setContentsMargins(16, 14, 16, 14)
+        root_layout.setSpacing(10)
 
         # Header bar
         header_layout = QHBoxLayout()
@@ -44,7 +46,7 @@ class MainWindow(QMainWindow):
         title_row = QHBoxLayout()
 
         app_title = QLabel("VERT")
-        app_title.setStyleSheet("font-size: 22px; font-weight: 800; color: #10B981; letter-spacing: 1px;")
+        app_title.setStyleSheet("font-size: 24px; font-weight: 800; color: #10B981; letter-spacing: 1px;")
 
         badge = QLabel(" 100% OFFLINE ")
         badge.setStyleSheet(
@@ -56,7 +58,7 @@ class MainWindow(QMainWindow):
         title_row.addWidget(badge)
         title_row.addStretch()
 
-        subtitle = QLabel("Universal offline converter for Office documents, PDFs, images, media, and data")
+        subtitle = QLabel("Local File Converter & PDF Suite • Zero-Cloud • No File Caps")
         subtitle.setStyleSheet("color: #64748B; font-size: 12px;")
 
         title_box.addLayout(title_row)
@@ -64,21 +66,61 @@ class MainWindow(QMainWindow):
         header_layout.addLayout(title_box)
         header_layout.addStretch()
 
+        # Navigation buttons
+        self.back_btn = QPushButton("← All Tools")
+        self.back_btn.setStyleSheet(
+            "background-color: #1E293B; color: #10B981; border: 1px solid #059669; font-weight: bold; padding: 6px 14px;"
+        )
+        self.back_btn.setVisible(False)
+        self.back_btn.clicked.connect(self.show_hub)
+        header_layout.addWidget(self.back_btn)
+
         root_layout.addLayout(header_layout)
 
-        # Tab Widget (Convert Queue vs. PDF Toolbox)
-        self.tabs = QTabWidget()
+        # Stacked views
+        self.stack = QStackedWidget()
+
+        # View 0: Tools Hub
+        self.hub_view = HubView()
+        self.hub_view.tool_selected.connect(self._on_tool_selected)
+        self.stack.addWidget(self.hub_view)
+
+        # View 1: Universal 1:1 Batch Converter
         self.queue_view = QueueView()
+        self.stack.addWidget(self.queue_view)
+
+        # View 2: PDF Toolbox (Merge & Split)
         self.pdf_tools_view = PdfToolsView()
+        self.stack.addWidget(self.pdf_tools_view)
 
-        self.tabs.addTab(self.queue_view, "File Converter")
-        self.tabs.addTab(self.pdf_tools_view, "PDF Toolbox")
+        # View 3: Images to PDF
+        self.images_to_pdf_view = ImagesToPdfView()
+        self.stack.addWidget(self.images_to_pdf_view)
 
-        root_layout.addWidget(self.tabs)
+        root_layout.addWidget(self.stack)
 
         # Status Bar
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
+
+    def show_hub(self):
+        self.stack.setCurrentIndex(0)
+        self.back_btn.setVisible(False)
+
+    def _on_tool_selected(self, tool_id: str):
+        self.back_btn.setVisible(True)
+
+        if tool_id == "merge_pdf":
+            self.pdf_tools_view.tabs.setCurrentIndex(0)
+            self.stack.setCurrentWidget(self.pdf_tools_view)
+        elif tool_id == "split_pdf":
+            self.pdf_tools_view.tabs.setCurrentIndex(1)
+            self.stack.setCurrentWidget(self.pdf_tools_view)
+        elif tool_id == "images_to_pdf":
+            self.stack.setCurrentWidget(self.images_to_pdf_view)
+        else:
+            # Universal batch, office to pdf, pdf to office, image converter, media, data
+            self.stack.setCurrentWidget(self.queue_view)
 
     def _update_engine_status(self):
         lo_found = find_libreoffice_binary() is not None
