@@ -5,15 +5,9 @@ from pathlib import Path
 from PySide6.QtWidgets import QApplication
 
 from ui.main_window import MainWindow
+from ui.theme import ThemeMode, get_stylesheet
 
 ROOT_DIR = Path(__file__).resolve().parent
-
-
-def load_stylesheet() -> str:
-    qss_path = ROOT_DIR / "ui" / "styles.qss"
-    if qss_path.exists():
-        return qss_path.read_text(encoding="utf-8")
-    return ""
 
 
 def main():
@@ -21,9 +15,7 @@ def main():
     app.setApplicationName("Vert")
     app.setOrganizationName("Vert")
 
-    stylesheet = load_stylesheet()
-    if stylesheet:
-        app.setStyleSheet(stylesheet)
+    app.setStyleSheet(get_stylesheet(ThemeMode.DARK))
 
     window = MainWindow()
     window.show()

@@ -122,3 +122,43 @@ def test_split_tab_preview_loading(qapp, tmp_path):
 
     split_tab.close()
 
+
+def test_theme_toggle(qapp):
+    from ui.main_window import MainWindow
+    from ui.theme import ThemeMode
+
+    win = MainWindow()
+    assert win.current_theme == ThemeMode.DARK
+
+    # Toggle to Light
+    win.toggle_theme()
+    assert win.current_theme == ThemeMode.LIGHT
+
+    # Toggle back to Dark
+    win.toggle_theme()
+    assert win.current_theme == ThemeMode.DARK
+
+    win.close()
+
+
+def test_hub_responsive_columns(qapp):
+    from ui.hub_view import HubView
+
+    hub = HubView()
+    assert hub._calculate_columns(450) == 1
+    assert hub._calculate_columns(750) == 2
+    assert hub._calculate_columns(1050) == 3
+    assert hub._calculate_columns(1500) == 4
+    hub.close()
+
+
+def test_vector_icons_generation():
+    from ui.icons import get_pixmap, SVG_ICONS
+
+    for icon_name in SVG_ICONS.keys():
+        pix = get_pixmap(icon_name, color="#2563EB", size=24)
+        assert not pix.isNull()
+        assert pix.width() == 24
+        assert pix.height() == 24
+
+

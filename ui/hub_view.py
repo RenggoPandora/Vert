@@ -1,7 +1,7 @@
-"""Tools Hub (iLovePDF style) dashboard with categorized cards and quick search."""
+"""Tools Hub (iLovePDF style) dashboard with responsive layout and clean vector icons."""
 
 from dataclasses import dataclass
-from typing import Callable, Optional
+from typing import Optional
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QFrame,
@@ -15,6 +15,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from ui.icons import get_pixmap
+
 
 @dataclass
 class ToolDefinition:
@@ -22,7 +24,6 @@ class ToolDefinition:
     title: str
     description: str
     category: str
-    icon_text: str
     color_accent: str
 
 
@@ -31,34 +32,30 @@ TOOLS: list[ToolDefinition] = [
     ToolDefinition(
         tool_id="merge_pdf",
         title="Merge PDF",
-        description="Combine multiple PDF files into one in any order.",
+        description="Combine multiple PDF files into one in your custom order.",
         category="PDF",
-        icon_text="📄",
-        color_accent="#EF4444",
+        color_accent="#2563EB",
     ),
     ToolDefinition(
         tool_id="split_pdf",
         title="Split PDF",
-        description="Extract specific page ranges or separate all pages.",
+        description="Preview pages, extract ranges, or split into separate documents.",
         category="PDF",
-        icon_text="✂️",
-        color_accent="#F59E0B",
+        color_accent="#0284C7",
     ),
     ToolDefinition(
         tool_id="images_to_pdf",
         title="Images to PDF",
-        description="Convert and arrange multiple JPG, PNG, WebP into one PDF.",
+        description="Compile and reorder multiple JPG, PNG, WebP into a clean PDF.",
         category="PDF",
-        icon_text="🖼️",
-        color_accent="#10B981",
+        color_accent="#059669",
     ),
     ToolDefinition(
         tool_id="pdf_to_office",
         title="PDF to Word / Excel",
-        description="Extract tables to Excel or convert PDF back to editable DOCX.",
+        description="Extract tables to Excel or convert document text to DOCX.",
         category="PDF",
-        icon_text="📑",
-        color_accent="#3B82F6",
+        color_accent="#4F46E5",
     ),
     # Office
     ToolDefinition(
@@ -66,17 +63,15 @@ TOOLS: list[ToolDefinition] = [
         title="Office to PDF",
         description="Convert Word (.docx), Excel (.xlsx), and PowerPoint (.pptx) to PDF.",
         category="Office",
-        icon_text="📝",
         color_accent="#2563EB",
     ),
     # Images
     ToolDefinition(
         tool_id="image_converter",
         title="Image Converter",
-        description="Convert between PNG, JPG, WebP, ICO, BMP, and TIFF.",
+        description="Convert between PNG, JPG, WebP, ICO, BMP, and TIFF formats.",
         category="Images",
-        icon_text="🎨",
-        color_accent="#EC4899",
+        color_accent="#D97706",
     ),
     # Media
     ToolDefinition(
@@ -84,26 +79,23 @@ TOOLS: list[ToolDefinition] = [
         title="Audio & Video",
         description="Extract MP3/WAV from video, convert MP4/MKV, or create GIFs.",
         category="Media",
-        icon_text="🎬",
-        color_accent="#8B5CF6",
+        color_accent="#7C3AED",
     ),
     # Data
     ToolDefinition(
         tool_id="data_converter",
         title="Data Converter",
-        description="Convert spreadsheets and datasets between CSV, Excel, and JSON.",
+        description="Convert datasets and spreadsheets between CSV, XLSX, and JSON.",
         category="Data",
-        icon_text="📊",
-        color_accent="#14B8A6",
+        color_accent="#0D9488",
     ),
     # Universal
     ToolDefinition(
         tool_id="batch_converter",
         title="Universal Batch",
-        description="Drop any batch of files and convert each to any valid format.",
+        description="Batch convert any mixture of files into any compatible format.",
         category="All",
-        icon_text="🔄",
-        color_accent="#059669",
+        color_accent="#2563EB",
     ),
 ]
 
@@ -114,49 +106,51 @@ class ToolCard(QFrame):
     def __init__(self, tool: ToolDefinition, parent=None):
         super().__init__(parent)
         self.tool = tool
+        self.setObjectName("toolCard")
         self.setCursor(Qt.PointingHandCursor)
-        self.setFixedHeight(130)
-        self._set_style(hover=False)
+        self.setMinimumHeight(125)
+        self.setMaximumHeight(145)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(16, 14, 16, 14)
         layout.setSpacing(6)
 
-        # Header: Icon + Category Tag
+        # Header: Vector Icon + Tag
         header = QHBoxLayout()
-        icon_lbl = QLabel(tool.icon_text)
-        icon_lbl.setStyleSheet("font-size: 22px;")
+        self.icon_lbl = QLabel()
+        self.icon_lbl.setPixmap(get_pixmap(tool.tool_id, tool.color_accent, size=28))
+        self.icon_lbl.setFixedSize(32, 32)
 
-        tag_lbl = QLabel(f" {tool.category} ")
-        tag_lbl.setStyleSheet(
-            f"background-color: #0F172A; color: {tool.color_accent}; "
-            f"border: 1px solid {tool.color_accent}; border-radius: 4px; "
-            f"font-size: 10px; font-weight: bold; padding: 1px 4px;"
+        self.tag_lbl = QLabel(f" {tool.category.upper()} ")
+        self.tag_lbl.setStyleSheet(
+            f"color: {tool.color_accent}; border: 1px solid {tool.color_accent}; "
+            f"border-radius: 4px; font-size: 10px; font-weight: bold; padding: 2px 6px;"
         )
 
-        header.addWidget(icon_lbl)
+        header.addWidget(self.icon_lbl)
         header.addStretch()
-        header.addWidget(tag_lbl)
+        header.addWidget(self.tag_lbl)
         layout.addLayout(header)
 
         # Title
-        title_lbl = QLabel(tool.title)
-        title_lbl.setStyleSheet("font-size: 14px; font-weight: bold; color: #FFFFFF;")
-        layout.addWidget(title_lbl)
+        self.title_lbl = QLabel(tool.title)
+        self.title_lbl.setStyleSheet("font-size: 14px; font-weight: bold;")
+        layout.addWidget(self.title_lbl)
 
         # Description
-        desc_lbl = QLabel(tool.description)
-        desc_lbl.setStyleSheet("color: #94A3B8; font-size: 11px;")
-        desc_lbl.setWordWrap(True)
-        layout.addWidget(desc_lbl)
+        self.desc_lbl = QLabel(tool.description)
+        self.desc_lbl.setStyleSheet("color: #64748B; font-size: 11px;")
+        self.desc_lbl.setWordWrap(True)
+        layout.addWidget(self.desc_lbl)
         layout.addStretch()
 
+        self._set_style(hover=False)
+
     def _set_style(self, hover: bool):
-        bg = "#24324D" if hover else "#1E293B"
         border = self.tool.color_accent if hover else "#334155"
         self.setStyleSheet(
-            f"QFrame {{ background-color: {bg}; border: 1px solid {border}; "
-            f"border-radius: 10px; }} QFrame:hover {{ border: 1px solid {self.tool.color_accent}; }}"
+            f"#toolCard {{ border: 1px solid {border}; border-radius: 10px; }} "
+            f"#toolCard:hover {{ border: 2px solid {self.tool.color_accent}; }}"
         )
 
     def enterEvent(self, event):
@@ -177,6 +171,7 @@ class HubView(QWidget):
         super().__init__(parent)
         self.current_filter = "All"
         self.search_query = ""
+        self.current_cols = 3
         self.card_widgets: list[tuple[ToolDefinition, ToolCard]] = []
 
         self._init_ui()
@@ -196,11 +191,11 @@ class HubView(QWidget):
         btn_container = QHBoxLayout()
         btn_container.setSpacing(6)
         for cat in categories:
-            btn = QPushButton(f"{cat} Tools" if cat != "All" else "All Tools")
+            btn = QPushButton(f"{cat}" if cat != "All" else "All Tools")
             btn.setCheckable(True)
             if cat == "All":
                 btn.setChecked(True)
-                btn.setStyleSheet("background-color: #059669; color: #FFFFFF; font-weight: bold;")
+                btn.setStyleSheet("background-color: #2563EB; color: #FFFFFF; font-weight: bold;")
             btn.clicked.connect(lambda _, c=cat: self._set_category(c))
             self.cat_btns[cat] = btn
             btn_container.addWidget(btn)
@@ -218,21 +213,36 @@ class HubView(QWidget):
         root_layout.addLayout(nav_box)
 
         # Scroll Area for Cards Grid
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+        self.scroll = QScrollArea()
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
 
-        grid_container = QWidget()
-        grid_container.setStyleSheet("background: transparent;")
-        self.grid_layout = QGridLayout(grid_container)
+        self.grid_container = QWidget()
+        self.grid_container.setStyleSheet("background: transparent;")
+        self.grid_layout = QGridLayout(self.grid_container)
         self.grid_layout.setSpacing(14)
         self.grid_layout.setContentsMargins(4, 4, 4, 4)
 
-        # Populate Cards
         self._populate_grid()
 
-        scroll.setWidget(grid_container)
-        root_layout.addWidget(scroll)
+        self.scroll.setWidget(self.grid_container)
+        root_layout.addWidget(self.scroll)
+
+    def _calculate_columns(self, width: int) -> int:
+        if width < 550:
+            return 1
+        elif width < 850:
+            return 2
+        elif width < 1250:
+            return 3
+        return 4
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        new_cols = self._calculate_columns(self.width())
+        if new_cols != self.current_cols:
+            self.current_cols = new_cols
+            self._populate_grid()
 
     def _populate_grid(self):
         # Clear existing
@@ -252,7 +262,7 @@ class HubView(QWidget):
             if matches_cat and matches_search:
                 filtered.append(t)
 
-        cols = 3
+        cols = self.current_cols
         for idx, tool in enumerate(filtered):
             card = ToolCard(tool)
             card.clicked.connect(self.tool_selected.emit)
@@ -266,7 +276,7 @@ class HubView(QWidget):
         for cat, btn in self.cat_btns.items():
             if cat == category:
                 btn.setChecked(True)
-                btn.setStyleSheet("background-color: #059669; color: #FFFFFF; font-weight: bold;")
+                btn.setStyleSheet("background-color: #2563EB; color: #FFFFFF; font-weight: bold;")
             else:
                 btn.setChecked(False)
                 btn.setStyleSheet("")

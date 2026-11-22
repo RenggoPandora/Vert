@@ -53,6 +53,7 @@
 ## Change Log
 | Date | Version | Notes |
 |---|---|---|
+| 2026-11-22 | v0.7 | UI anti-slop overhaul: eliminated all emojis in favor of crisp SVG vector icons, implemented Light (White/Grey/Blue) and Dark (Black/Grey/Blue) theme switcher, fluid responsive grid layout, 39 automated tests passing. |
 | 2026-11-22 | v0.6 | Added visual page preview to Split PDF with interactive thumbnail cards, multi-mode extraction (single combined PDF vs. separate files), and updated test suite (36 tests passing). |
 | 2026-11-22 | v0.5 | Added iLovePDF-style Tools Hub dashboard with category filters & search, dedicated Images-to-PDF tool view and backend, updated unit tests to 34 passing. |
 | 2026-11-22 | v0.4 | Completed Phase 1, 2, 3: Full PySide6 UI with 1:1 Batch Queue and PDF Toolbox (Merge/Split), all converter backends, and comprehensive test suite (31 tests passing). |
