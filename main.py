@@ -40,24 +40,18 @@ def main():
 
     app.setStyleSheet(get_stylesheet(ThemeMode.DARK))
 
-    # Show Hadora Works Splash Screen
+    # Show Hadora Works Splash Screen with smooth animation
     splash = SplashScreen()
     splash.show()
-    app.processEvents()
 
-    # Create main window
+    # Create main window in background
     window = MainWindow()
     if ico_path.exists():
         window.setWindowIcon(QIcon(str(ico_path)))
 
-    # Smooth transition from splash to main window
-    def on_loaded():
-        splash.advance_progress(100)
-        app.processEvents()
-        splash.close()
-        window.show()
-
-    QTimer.singleShot(1400, on_loaded)
+    # Smooth transition: once splash animation completes, launch main window
+    splash.ready_to_launch.connect(window.show)
+    splash.start_animation(duration_ms=1200)
 
     sys.exit(app.exec())
 
