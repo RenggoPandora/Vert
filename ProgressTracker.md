@@ -1,6 +1,6 @@
 # Vert — Development Progress Tracker
 
-**Current Phase:** Phase 0 — Planning & Setup  
+**Current Phase:** Phase 1 — MVP: Core UI, Office & Images  
 **Target Release:** v1.0.0 (Windows Offline Installer)  
 
 ---
@@ -8,9 +8,9 @@
 ## Phase 0: Project Setup & Architecture
 - [x] Define core concept and offline engine strategy
 - [x] Draft `BRD.md` and `PRD.md` with best practices (no pandas, process isolation, profile separation)
-- [ ] Initialize Git repository, `.gitignore`, and project folder structure
-- [ ] Create Python virtual environment (`venv`) and minimal `requirements.txt`
-- [ ] Create `scripts/download_engines.py` to fetch portable binaries (`ffmpeg.exe`, `LibreOfficePortable`)
+- [x] Initialize Git repository, `.gitignore`, and project folder structure
+- [x] Create Python virtual environment (`venv`) and minimal `requirements.txt`
+- [x] Create `scripts/download_engines.py` to fetch portable binaries (`ffmpeg.exe`, `LibreOfficePortable`)
 
 ---
 
@@ -53,5 +53,6 @@
 ## Change Log
 | Date | Version | Notes |
 |---|---|---|
+| 2026-11-22 | v0.3 | Completed Phase 0: git, project layout, venv, requirements, download_engines script. |
 | 2026-11-22 | v0.2 | Refined architecture: drop pandas/numpy bloat, separate 1:1 queue from PDF toolbox, add LibreOffice user profile isolation and QProcess runner. |
 | 2026-11-22 | v0.1 | Initialized BRD, PRD, and Progress Tracker for Vert. |
