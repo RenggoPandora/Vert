@@ -27,6 +27,14 @@ def log(msg: str) -> None:
 
 def download_file(url: str, dest_path: Path) -> None:
     log(f"Downloading: {url} -> {dest_path.name}")
+    dest_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Use curl if present for automatic resume and high speed
+    curl_bin = shutil.which("curl")
+    if curl_bin:
+        ret = os.system(f'curl.exe -C - -L -o "{dest_path}" "{url}"')
+        if ret == 0 and dest_path.exists():
+            return
 
     def report_progress(block_num, block_size, total_size):
         if total_size <= 0:
@@ -40,7 +48,6 @@ def download_file(url: str, dest_path: Path) -> None:
         )
         sys.stdout.flush()
 
-    dest_path.parent.mkdir(parents=True, exist_ok=True)
     urllib.request.urlretrieve(url, dest_path, reporthook=report_progress)
     print()
 

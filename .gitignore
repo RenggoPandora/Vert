@@ -47,5 +47,6 @@ desktop.ini
 
 # Output / Test Artifacts
 test_output/
+test_samples/
 *.log
 temp/
