@@ -1,6 +1,7 @@
 """On-demand update checker using GitHub Releases API (zero startup calls)."""
 
 import json
+import urllib.error
 import urllib.request
 from typing import Optional, Tuple
 from PySide6.QtCore import QObject, QRunnable, Signal
@@ -37,8 +38,6 @@ def check_github_releases(timeout: int = 5) -> Tuple[bool, str, str, str]:
 
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
-            if resp.status != 200:
-                raise RuntimeError(f"GitHub returned HTTP status {resp.status}")
             data = json.loads(resp.read().decode("utf-8"))
 
         tag_name = data.get("tag_name", "").strip()
@@ -56,8 +55,19 @@ def check_github_releases(timeout: int = 5) -> Tuple[bool, str, str, str]:
         has_update = is_newer_version(tag_name, __version__)
         return (has_update, tag_name, installer_url, body)
 
+    except urllib.error.HTTPError as http_err:
+        if http_err.code == 404:
+            # 404 means the GitHub repository has no published releases yet
+            return (
+                False,
+                f"v{__version__}",
+                f"https://github.com/{GITHUB_REPO}/releases",
+                "No public release published on GitHub yet.",
+            )
+        raise RuntimeError(f"GitHub returned HTTP status {http_err.code} ({http_err.reason})")
+
     except Exception as exc:
-        raise RuntimeError(f"Could not connect to update server: {exc}")
+        raise RuntimeError(f"Network error: {exc}")
 
 
 class UpdateSignals(QObject):

@@ -14,3 +14,11 @@ def test_is_newer_version():
     assert is_newer_version("2.0.0", "1.9.9")
     assert not is_newer_version("1.0.0", "1.0.0")
     assert not is_newer_version("0.9.0", "1.0.0")
+
+
+def test_check_github_releases_empty_repo_handles_404():
+    from core.updater import check_github_releases
+    has_update, tag, url, body = check_github_releases()
+    assert has_update is False
+    assert tag == f"v{__version__}"
+
