@@ -3,8 +3,10 @@
 from dataclasses import dataclass
 from typing import Optional
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QFrame,
+    QGraphicsDropShadowEffect,
     QGridLayout,
     QHBoxLayout,
     QLabel,
@@ -109,9 +111,17 @@ class ToolCard(QFrame):
         self.tool = tool
         self.setObjectName("toolCard")
         self.setCursor(Qt.PointingHandCursor)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        self.setMinimumHeight(125)
+        self.setMinimumWidth(260)
+        self.setMaximumWidth(320)
+        self.setMinimumHeight(130)
         self.setMaximumHeight(145)
+
+        # Smooth ambient 3D drop shadow
+        self.shadow = QGraphicsDropShadowEffect(self)
+        self.shadow.setBlurRadius(16)
+        self.shadow.setOffset(0, 4)
+        self.shadow.setColor(QColor(0, 0, 0, 45))
+        self.setGraphicsEffect(self.shadow)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(16, 14, 16, 14)
@@ -125,7 +135,7 @@ class ToolCard(QFrame):
 
         self.tag_lbl = QLabel(f" {tool.category.upper()} ")
         self.tag_lbl.setStyleSheet(
-            f"color: {tool.color_accent}; border: 1px solid {tool.color_accent}; "
+            f"color: {tool.color_accent}; border: 1.5px solid {tool.color_accent}; "
             f"border-radius: 4px; font-size: 10px; font-weight: bold; padding: 2px 6px;"
         )
 
@@ -146,20 +156,19 @@ class ToolCard(QFrame):
         layout.addWidget(self.desc_lbl)
         layout.addStretch()
 
-        self._set_style(hover=False)
-
-    def _set_style(self, hover: bool):
-        border = self.tool.color_accent if hover else "#334155"
-        self.setStyleSheet(
-            f"#toolCard {{ border: 1px solid {border}; border-radius: 10px; }} "
-            f"#toolCard:hover {{ border: 2px solid {self.tool.color_accent}; }}"
-        )
-
     def enterEvent(self, event):
-        self._set_style(hover=True)
+        # 3D lift with subtle accent glow
+        self.shadow.setBlurRadius(24)
+        self.shadow.setOffset(0, 6)
+        self.shadow.setColor(QColor(37, 99, 235, 75))
+        super().enterEvent(event)
 
     def leaveEvent(self, event):
-        self._set_style(hover=False)
+        # Reset to ambient shadow
+        self.shadow.setBlurRadius(16)
+        self.shadow.setOffset(0, 4)
+        self.shadow.setColor(QColor(0, 0, 0, 45))
+        super().leaveEvent(event)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -223,8 +232,9 @@ class HubView(QWidget):
         self.grid_container = QWidget()
         self.grid_container.setStyleSheet("background: transparent;")
         self.grid_layout = QGridLayout(self.grid_container)
-        self.grid_layout.setSpacing(14)
-        self.grid_layout.setContentsMargins(4, 4, 4, 4)
+        self.grid_layout.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        self.grid_layout.setSpacing(16)
+        self.grid_layout.setContentsMargins(6, 6, 6, 6)
 
         self._populate_grid()
 
@@ -248,10 +258,14 @@ class HubView(QWidget):
             self._populate_grid()
 
     def _populate_grid(self):
-        # Clear existing
-        for _, card in self.card_widgets:
-            self.grid_layout.removeWidget(card)
-            card.deleteLater()
+        # Clear existing layout items completely
+        while self.grid_layout.count():
+            item = self.grid_layout.takeAt(0)
+            w = item.widget()
+            if w:
+                w.hide()
+                w.setParent(None)
+                w.deleteLater()
         self.card_widgets.clear()
 
         filtered: list[ToolDefinition] = []

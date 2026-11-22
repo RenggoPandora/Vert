@@ -1,4 +1,4 @@
-"""Theme engine for Vert: Light (White-Grey-Blue) and Dark (Black-Grey-Blue)."""
+"""Theme engine for Vert: Light (White-Grey-Blue) and Dark (Black-Grey-Blue) with tactile 3D elevation."""
 
 from enum import Enum
 
@@ -11,12 +11,29 @@ class ThemeMode(str, Enum):
 def get_stylesheet(mode: ThemeMode = ThemeMode.DARK) -> str:
     if mode == ThemeMode.LIGHT:
         return """
-        /* Vert - Modern Clean Light Theme (White - Grey - Blue) */
+        /* Vert - Modern Tactile Light Theme (White - Grey - Blue) */
         QMainWindow, QWidget {
             background-color: #F8FAFC;
             color: #0F172A;
             font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
             font-size: 13px;
+        }
+
+        /* Tool Cards 3D styling */
+        #toolCard {
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFFFFF, stop:1 #F8FAFC);
+            border-top: 1px solid #FFFFFF;
+            border-left: 1px solid #E2E8F0;
+            border-right: 1px solid #E2E8F0;
+            border-bottom: 2px solid #CBD5E1;
+            border-radius: 12px;
+        }
+
+        #toolCard:hover {
+            border-top: 1px solid #93C5FD;
+            border-left: 1.5px solid #3B82F6;
+            border-right: 1.5px solid #3B82F6;
+            border-bottom: 2.5px solid #1D4ED8;
         }
 
         /* Tab Bar */
@@ -28,11 +45,13 @@ def get_stylesheet(mode: ThemeMode = ThemeMode.DARK) -> str:
             border-top-left-radius: 8px;
             border-top-right-radius: 8px;
             font-weight: 600;
+            border-top: 1px solid #F1F5F9;
         }
 
         QTabBar::tab:selected {
             background: #2563EB;
             color: #FFFFFF;
+            border-top: 1px solid #60A5FA;
         }
 
         QTabBar::tab:hover:!selected {
@@ -42,14 +61,15 @@ def get_stylesheet(mode: ThemeMode = ThemeMode.DARK) -> str:
 
         QTabWidget::pane {
             border: 1px solid #E2E8F0;
+            border-bottom: 2px solid #CBD5E1;
             background: #FFFFFF;
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 8px;
         }
 
         /* Drop Zone */
         #dropZone {
-            background-color: #F1F5F9;
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #F8FAFC, stop:1 #F1F5F9);
             border: 2px dashed #CBD5E1;
             border-radius: 12px;
             padding: 20px;
@@ -67,52 +87,68 @@ def get_stylesheet(mode: ThemeMode = ThemeMode.DARK) -> str:
             padding: 20px;
         }
 
-        /* Buttons */
+        /* Buttons with tactile 3D feel */
         QPushButton {
-            background-color: #E2E8F0;
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFFFFF, stop:1 #E2E8F0);
             color: #1E293B;
-            border: 1px solid #CBD5E1;
+            border-top: 1px solid #FFFFFF;
+            border-left: 1px solid #CBD5E1;
+            border-right: 1px solid #CBD5E1;
+            border-bottom: 2px solid #94A3B8;
             border-radius: 6px;
-            padding: 8px 16px;
+            padding: 7px 16px;
             font-weight: 600;
         }
 
         QPushButton:hover {
-            background-color: #CBD5E1;
+            background: #E2E8F0;
+            border-color: #94A3B8;
             color: #0F172A;
         }
 
         QPushButton:pressed {
-            background-color: #94A3B8;
+            background: #CBD5E1;
+            border-top: 2px solid #94A3B8;
+            border-bottom: 1px solid #CBD5E1;
+            padding-top: 8px;
+            padding-bottom: 6px;
         }
 
         QPushButton:disabled {
-            background-color: #F1F5F9;
+            background: #F1F5F9;
             color: #94A3B8;
             border-color: #E2E8F0;
         }
 
         /* Primary Action Buttons */
         QPushButton#primaryButton {
-            background-color: #2563EB;
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3B82F6, stop:1 #2563EB);
             color: #FFFFFF;
-            border: none;
+            border-top: 1px solid #93C5FD;
+            border-left: 1px solid #2563EB;
+            border-right: 1px solid #2563EB;
+            border-bottom: 2.5px solid #1E40AF;
             font-size: 14px;
-            padding: 10px 24px;
+            padding: 9px 24px;
             border-radius: 8px;
             font-weight: bold;
         }
 
         QPushButton#primaryButton:hover {
-            background-color: #1D4ED8;
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #60A5FA, stop:1 #3B82F6);
         }
 
         QPushButton#primaryButton:pressed {
-            background-color: #1E40AF;
+            background: #1D4ED8;
+            border-top: 2px solid #1E3A8A;
+            border-bottom: 1px solid #1E3A8A;
+            padding-top: 10px;
+            padding-bottom: 8px;
         }
 
         QPushButton#primaryButton:disabled {
-            background-color: #93C5FD;
+            background: #93C5FD;
+            border-color: #BFDBFE;
             color: #EFF6FF;
         }
 
@@ -132,9 +168,12 @@ def get_stylesheet(mode: ThemeMode = ThemeMode.DARK) -> str:
 
         /* ComboBox */
         QComboBox {
-            background-color: #FFFFFF;
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFFFFF, stop:1 #F8FAFC);
             color: #0F172A;
-            border: 1px solid #CBD5E1;
+            border-top: 1px solid #E2E8F0;
+            border-left: 1px solid #CBD5E1;
+            border-right: 1px solid #CBD5E1;
+            border-bottom: 2px solid #94A3B8;
             border-radius: 6px;
             padding: 6px 12px;
             min-width: 130px;
@@ -163,6 +202,7 @@ def get_stylesheet(mode: ThemeMode = ThemeMode.DARK) -> str:
         QTableWidget {
             background-color: #FFFFFF;
             border: 1px solid #E2E8F0;
+            border-bottom: 2px solid #CBD5E1;
             border-radius: 8px;
             gridline-color: #F1F5F9;
             selection-background-color: #EFF6FF;
@@ -182,7 +222,7 @@ def get_stylesheet(mode: ThemeMode = ThemeMode.DARK) -> str:
         /* Input Fields */
         QLineEdit {
             background-color: #FFFFFF;
-            border: 1px solid #CBD5E1;
+            border: 1.5px solid #CBD5E1;
             border-radius: 6px;
             padding: 8px 12px;
             color: #0F172A;
@@ -264,7 +304,7 @@ def get_stylesheet(mode: ThemeMode = ThemeMode.DARK) -> str:
         }
 
         QProgressBar::chunk {
-            background-color: #2563EB;
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #3B82F6, stop:1 #2563EB);
             border-radius: 6px;
         }
 
@@ -277,14 +317,32 @@ def get_stylesheet(mode: ThemeMode = ThemeMode.DARK) -> str:
         }
         """
 
-    # Default DARK Theme (Black - Grey - Blue)
+    # Default DARK Theme (Black - Grey - Blue) with tactile 3D surfaces
     return """
-    /* Vert - Modern Clean Dark Theme (Black - Grey - Blue) */
+    /* Vert - Modern Tactile Dark Theme (Black - Grey - Blue) */
     QMainWindow, QWidget {
         background-color: #0B0F17;
         color: #F8FAFC;
         font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
         font-size: 13px;
+    }
+
+    /* Tool Cards 3D styling */
+    #toolCard {
+        background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1A2338, stop:1 #111827);
+        border-top: 1px solid #2B3D5E;
+        border-left: 1px solid #1E293B;
+        border-right: 1px solid #1E293B;
+        border-bottom: 2.5px solid #080C14;
+        border-radius: 12px;
+    }
+
+    #toolCard:hover {
+        background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #222F4B, stop:1 #151E32);
+        border-top: 1px solid #60A5FA;
+        border-left: 1.5px solid #3B82F6;
+        border-right: 1.5px solid #3B82F6;
+        border-bottom: 3px solid #1D4ED8;
     }
 
     /* Tab Bar */
@@ -296,36 +354,39 @@ def get_stylesheet(mode: ThemeMode = ThemeMode.DARK) -> str:
         border-top-left-radius: 8px;
         border-top-right-radius: 8px;
         font-weight: 600;
+        border-top: 1px solid #2A3B58;
     }
 
     QTabBar::tab:selected {
         background: #2563EB;
         color: #FFFFFF;
+        border-top: 1px solid #60A5FA;
     }
 
     QTabBar::tab:hover:!selected {
-        background: #334155;
+        background: #2A3B58;
         color: #F8FAFC;
     }
 
     QTabWidget::pane {
         border: 1px solid #1E293B;
+        border-bottom: 2px solid #080C14;
         background: #111827;
-        border-radius: 8px;
+        border-radius: 10px;
         padding: 8px;
     }
 
-    /* Drop Zone */
+    /* Drop Zone with recessed well depth */
     #dropZone {
-        background-color: #131B2E;
-        border: 2px dashed #2A374E;
+        background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #0F172A, stop:1 #131B2E);
+        border: 2px dashed #2A3B58;
         border-radius: 12px;
         padding: 20px;
     }
 
     #dropZone:hover {
         border-color: #3B82F6;
-        background-color: #1A253C;
+        background: #152238;
     }
 
     #dropZoneActive {
@@ -335,52 +396,69 @@ def get_stylesheet(mode: ThemeMode = ThemeMode.DARK) -> str:
         padding: 20px;
     }
 
-    /* Buttons */
+    /* Buttons with tactile 3D feel */
     QPushButton {
-        background-color: #1E293B;
+        background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #2A374E, stop:1 #1E293B);
         color: #F8FAFC;
-        border: 1px solid #334155;
+        border-top: 1px solid #3B4B68;
+        border-left: 1px solid #2A374E;
+        border-right: 1px solid #2A374E;
+        border-bottom: 2px solid #0B0F17;
         border-radius: 6px;
-        padding: 8px 16px;
+        padding: 7px 16px;
         font-weight: 600;
     }
 
     QPushButton:hover {
-        background-color: #2E3D56;
+        background: #334155;
         border-color: #4B5563;
+        color: #FFFFFF;
     }
 
     QPushButton:pressed {
-        background-color: #0F172A;
+        background: #0F172A;
+        border-top: 2px solid #080C14;
+        border-bottom: 1px solid #1E293B;
+        padding-top: 8px;
+        padding-bottom: 6px;
     }
 
     QPushButton:disabled {
-        background-color: #131B2E;
+        background: #131B2E;
         color: #475569;
         border-color: #1E293B;
     }
 
     /* Primary Action Buttons */
     QPushButton#primaryButton {
-        background-color: #2563EB;
+        background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3B82F6, stop:1 #2563EB);
         color: #FFFFFF;
-        border: none;
+        border-top: 1px solid #60A5FA;
+        border-left: 1px solid #2563EB;
+        border-right: 1px solid #2563EB;
+        border-bottom: 2.5px solid #172554;
         font-size: 14px;
-        padding: 10px 24px;
+        padding: 9px 24px;
         border-radius: 8px;
         font-weight: bold;
     }
 
     QPushButton#primaryButton:hover {
-        background-color: #3B82F6;
+        background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #60A5FA, stop:1 #3B82F6);
+        border-top: 1px solid #93C5FD;
     }
 
     QPushButton#primaryButton:pressed {
-        background-color: #1D4ED8;
+        background: #1D4ED8;
+        border-top: 2px solid #0F172A;
+        border-bottom: 1px solid #1E3A8A;
+        padding-top: 10px;
+        padding-bottom: 8px;
     }
 
     QPushButton#primaryButton:disabled {
-        background-color: #1E3A8A;
+        background: #1E3A8A;
+        border-color: #1E3A8A;
         color: #60A5FA;
         opacity: 0.5;
     }
@@ -401,9 +479,12 @@ def get_stylesheet(mode: ThemeMode = ThemeMode.DARK) -> str:
 
     /* ComboBox */
     QComboBox {
-        background-color: #131B2E;
+        background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1A2338, stop:1 #131B2E);
         color: #F8FAFC;
-        border: 1px solid #2A374E;
+        border-top: 1px solid #2B3D5E;
+        border-left: 1px solid #1E293B;
+        border-right: 1px solid #1E293B;
+        border-bottom: 2px solid #0B0F17;
         border-radius: 6px;
         padding: 6px 12px;
         min-width: 130px;
@@ -432,6 +513,7 @@ def get_stylesheet(mode: ThemeMode = ThemeMode.DARK) -> str:
     QTableWidget {
         background-color: #131B2E;
         border: 1px solid #1E293B;
+        border-bottom: 2px solid #080C14;
         border-radius: 8px;
         gridline-color: #1E293B;
         selection-background-color: #1E3A8A;
@@ -450,7 +532,7 @@ def get_stylesheet(mode: ThemeMode = ThemeMode.DARK) -> str:
     /* Input Fields */
     QLineEdit {
         background-color: #131B2E;
-        border: 1px solid #2A374E;
+        border: 1.5px solid #2A374E;
         border-radius: 6px;
         padding: 8px 12px;
         color: #F8FAFC;
@@ -532,7 +614,7 @@ def get_stylesheet(mode: ThemeMode = ThemeMode.DARK) -> str:
     }
 
     QProgressBar::chunk {
-        background-color: #2563EB;
+        background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #3B82F6, stop:1 #2563EB);
         border-radius: 6px;
     }
 
