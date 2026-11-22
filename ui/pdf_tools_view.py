@@ -273,19 +273,35 @@ class SplitTab(QWidget):
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
         self.scroll.setStyleSheet("QScrollArea { border: 1px solid #334155; border-radius: 8px; background: #0B1120; }")
-        self.scroll.setMinimumHeight(240)
+        self.scroll.setMinimumHeight(180)
 
         self.gallery_widget = QWidget()
         self.gallery_layout = QGridLayout(self.gallery_widget)
         self.gallery_layout.setSpacing(12)
         self.gallery_layout.setContentsMargins(12, 12, 12, 12)
+
+        # Initial placeholder label
+        self.empty_label = QLabel("No PDF loaded. Drag & drop a PDF above or click 'Select PDF...' to inspect pages.")
+        self.empty_label.setStyleSheet("color: #64748B; font-size: 13px; font-weight: 500;")
+        self.empty_label.setAlignment(Qt.AlignCenter)
+        self.gallery_layout.addWidget(self.empty_label, 0, 0, 1, 5)
+
         self.scroll.setWidget(self.gallery_widget)
         root_layout.addWidget(self.scroll, stretch=1)
 
-        # Split Execution Options
+        # Split Execution Options Card
         opt_box = QFrame()
-        opt_box.setStyleSheet("background-color: #1E293B; border-radius: 8px; padding: 10px;")
+        opt_box.setObjectName("splitOptionsBox")
+        opt_box.setStyleSheet(
+            "#splitOptionsBox { background-color: #1E293B; border: 1px solid #334155; border-radius: 8px; }"
+        )
         opt_layout = QVBoxLayout(opt_box)
+        opt_layout.setContentsMargins(16, 12, 16, 12)
+        opt_layout.setSpacing(8)
+
+        opt_title = QLabel("Choose Split Mode:")
+        opt_title.setStyleSheet("font-size: 12px; font-weight: bold; color: #94A3B8; text-transform: uppercase;")
+        opt_layout.addWidget(opt_title)
 
         self.btn_group = QButtonGroup(self)
         self.radio_extract_combined = QRadioButton("Extract selected pages into ONE single PDF document")
@@ -298,6 +314,8 @@ class SplitTab(QWidget):
         self.btn_group.addButton(self.radio_extract_separate)
         self.btn_group.addButton(self.radio_split_all)
 
+        self.radio_extract_combined.toggled.connect(self._on_split_mode_changed)
+
         opt_layout.addWidget(self.radio_extract_combined)
         opt_layout.addWidget(self.radio_extract_separate)
         opt_layout.addWidget(self.radio_split_all)
@@ -305,20 +323,30 @@ class SplitTab(QWidget):
 
         # Action Bottom Bar
         bottom_bar = QHBoxLayout()
-        name_label = QLabel("Output Filename:")
+        self.name_label = QLabel("Output Filename:")
         self.out_name_edit = QLineEdit("extracted_pages.pdf")
-        self.out_name_edit.setFixedWidth(200)
+        self.out_name_edit.setFixedWidth(220)
+
+        self.mode_hint_label = QLabel("Output: You will choose a destination folder for split files.")
+        self.mode_hint_label.setStyleSheet("color: #94A3B8; font-style: italic;")
+        self.mode_hint_label.setVisible(False)
 
         self.split_btn = QPushButton("Split / Extract PDF")
         self.split_btn.setObjectName("primaryButton")
         self.split_btn.setEnabled(False)
         self.split_btn.clicked.connect(self._execute_split)
 
-        bottom_bar.addWidget(name_label)
+        bottom_bar.addWidget(self.name_label)
         bottom_bar.addWidget(self.out_name_edit)
+        bottom_bar.addWidget(self.mode_hint_label)
         bottom_bar.addStretch()
         bottom_bar.addWidget(self.split_btn)
         root_layout.addLayout(bottom_bar)
+
+    def _on_split_mode_changed(self, is_combined: bool):
+        self.name_label.setVisible(is_combined)
+        self.out_name_edit.setVisible(is_combined)
+        self.mode_hint_label.setVisible(not is_combined)
 
     def _drag_enter(self, event):
         if event.mimeData().hasUrls():
@@ -341,6 +369,7 @@ class SplitTab(QWidget):
     def load_pdf(self, path: Path):
         self.selected_pdf = path
         self.file_label.setText(f"Loaded: {path.name} ({path.parent})")
+        self.empty_label.setVisible(False)
 
         # Clear existing gallery
         for card in self.page_cards.values():
