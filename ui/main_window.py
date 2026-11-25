@@ -16,8 +16,11 @@ from PySide6.QtWidgets import (
 
 from core.media_converter import find_ffmpeg_binary
 from core.office_converter import find_libreoffice_binary
+from core.transcription.engine import find_whisper_binary
 from core.updater import UpdateCheckTask
 from core.version import GITHUB_REPO, __version__
+from ui.audio_transcription_view import AudioTranscriptionView
+from ui.compression_view import CompressionView
 from ui.hub_view import HubView
 from ui.icons import get_icon, get_pixmap
 from ui.images_to_pdf_view import ImagesToPdfView
@@ -123,6 +126,14 @@ class MainWindow(QMainWindow):
         self.images_to_pdf_view = ImagesToPdfView()
         self.stack.addWidget(self.images_to_pdf_view)
 
+        # View 4: Audio-to-Text Speech Recognition
+        self.audio_transcription_view = AudioTranscriptionView()
+        self.stack.addWidget(self.audio_transcription_view)
+
+        # View 5: Advanced File Compression
+        self.compression_view = CompressionView()
+        self.stack.addWidget(self.compression_view)
+
         root_layout.addWidget(self.stack, stretch=1)
 
         # Status Bar
@@ -163,6 +174,10 @@ class MainWindow(QMainWindow):
             self.stack.setCurrentWidget(self.pdf_tools_view)
         elif tool_id == "images_to_pdf":
             self.stack.setCurrentWidget(self.images_to_pdf_view)
+        elif tool_id == "audio_transcription":
+            self.stack.setCurrentWidget(self.audio_transcription_view)
+        elif tool_id == "file_compression":
+            self.stack.setCurrentWidget(self.compression_view)
         else:
             self.stack.setCurrentWidget(self.queue_view)
 
@@ -211,10 +226,12 @@ class MainWindow(QMainWindow):
     def _update_engine_status(self):
         lo_found = find_libreoffice_binary() is not None
         ffmpeg_found = find_ffmpeg_binary() is not None
+        whisper_found = find_whisper_binary() is not None
 
-        lo_text = "Office: Ready" if lo_found else "Office: System Fallback / Standby"
+        lo_text = "Office: Ready" if lo_found else "Office: System Fallback"
         ffmpeg_text = "Media (FFmpeg): Ready" if ffmpeg_found else "Media (FFmpeg): Standby"
+        whisper_text = "Speech (whisper.cpp): Ready" if whisper_found else "Speech: Standby"
 
         self.status_bar.showMessage(
-            f"Engine Status: {lo_text} | {ffmpeg_text} | Network: Disabled (100% Local)"
+            f"Engine Status: {lo_text} | {ffmpeg_text} | {whisper_text} | Network: 100% Local"
         )

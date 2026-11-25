@@ -24,10 +24,22 @@ Vert runs proven conversion engines locally on your machine with **zero telemetr
 * **Universal Image Converter:** Convert between PNG, JPG, WebP, ICO, BMP, and TIFF with automatic color-mode adaptation (RGBA alpha flattening for JPEG/PDF).
 * **Audio & Video (Bundled FFmpeg):** Extract audio (MP3, WAV, FLAC) from video files (MP4, MKV, AVI, MOV), convert containers, or generate animated GIFs.
 
-### 4. Structured Data
+### 4. Audio-to-Text (whisper.cpp)
+* **Private & Offline Transcription:** Transcribe speech directly on your device with no cloud APIs or data leakage.
+* **On-Demand Model Manager:** Download lightweight models (`Tiny`, `Base`, `Small`, `Medium`) with explicit user consent and remove anytime to free disk space.
+* **Multilingual:** Auto-detect spoken language or choose manually (including Indonesian, English, Spanish, and more).
+* **Multi-Format Export:** Live transcript preview and editor with export to `TXT`, `SRT`, `VTT`, and `JSON`.
+
+### 5. Advanced File Compression
+* **Target-Size Optimizer:** Bounded iterative optimization to reach exact target size goals (-25%, -50%, -75%, or custom KB/MB).
+* **Format-Aware Adapters:** Stream deflation & image downsampling for PDF, quality & resolution tuning for Images (JPEG, PNG, WebP), bitrate calculation for Videos (MP4), and maximum deflate for ZIP archives.
+* **Original File Preservation:** Source files are never overwritten or altered. Output savings and reductions are measured and reported transparently.
+
+### 6. Structured Data
 * **Lightweight Data Converter:** Convert spreadsheets and data files between CSV, XLSX, and JSON without heavy data-science dependencies.
 
-### 5. Thoughtful Interface & Design
+### 7. Thoughtful Interface & Design
+* **Custom Output Destination Freedom:** Every tool lets you specify your destination folder or prompts exact Save As locations.
 * **Minimalist Typography:** Built with the **Plus Jakarta Sans** type system.
 * **Dual-Theme Support:** One-click toggle between **Dark Mode** (Obsidian / Slate / Royal Blue) and **Light Mode** (Crisp White / Slate / Blue).
 * **Responsive Grid:** Tools hub automatically adapts across 1 to 4 columns based on window dimensions.

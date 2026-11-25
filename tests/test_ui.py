@@ -19,7 +19,7 @@ def test_main_window_instantiation(qapp):
 
     win = MainWindow()
     assert win.windowTitle().startswith("Vert")
-    assert win.stack.count() == 4
+    assert win.stack.count() >= 5
     assert win.stack.currentIndex() == 0  # Hub view
     assert not win.back_btn.isVisible()
 
@@ -27,6 +27,14 @@ def test_main_window_instantiation(qapp):
     win._on_tool_selected("images_to_pdf")
     assert win.stack.currentWidget() == win.images_to_pdf_view
     assert not win.back_btn.isHidden()
+
+    # Select audio transcription
+    win._on_tool_selected("audio_transcription")
+    assert win.stack.currentWidget() == win.audio_transcription_view
+
+    # Select file compression
+    win._on_tool_selected("file_compression")
+    assert win.stack.currentWidget() == win.compression_view
 
     # Back to hub
     win.show_hub()

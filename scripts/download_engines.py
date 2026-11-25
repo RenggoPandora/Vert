@@ -20,6 +20,10 @@ FFMPEG_URL = (
     "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
 )
 
+WHISPER_URL = (
+    "https://github.com/ggerganov/whisper.cpp/releases/download/v1.7.4/whisper-bin-x64.zip"
+)
+
 
 def log(msg: str) -> None:
     print(f"[Vert Engine Setup] {msg}")
@@ -91,14 +95,56 @@ def setup_ffmpeg() -> bool:
             zip_tmp.unlink(missing_ok=True)
 
 
+def setup_whisper() -> bool:
+    ENGINES_DIR.mkdir(parents=True, exist_ok=True)
+    target_whisper = ENGINES_DIR / "whisper-cli.exe"
+
+    if target_whisper.exists():
+        log(f"whisper-cli.exe already present: {target_whisper}")
+        return True
+
+    # Check for main.exe as fallback
+    if (ENGINES_DIR / "main.exe").exists():
+        log(f"whisper engine already present as main.exe")
+        return True
+
+    zip_tmp = ENGINES_DIR / "whisper_temp.zip"
+    try:
+        download_file(WHISPER_URL, zip_tmp)
+        log("Extracting whisper binaries...")
+        with zipfile.ZipFile(zip_tmp, "r") as zf:
+            for member in zf.namelist():
+                name = Path(member).name.lower()
+                if name in ("whisper-cli.exe", "main.exe", "whisper.dll", "ggml.dll"):
+                    dest = ENGINES_DIR / Path(member).name
+                    with zf.open(member) as src, open(dest, "wb") as dst:
+                        shutil.copyfileobj(src, dst)
+        if target_whisper.exists() or (ENGINES_DIR / "main.exe").exists():
+            log(f"whisper engine extracted successfully into {ENGINES_DIR}")
+            return True
+        else:
+            log("Notice: whisper executable not found directly in root of archive.")
+            return False
+    except Exception as exc:
+        log(f"Failed to setup whisper engine: {exc}")
+        return False
+    finally:
+        if zip_tmp.exists():
+            zip_tmp.unlink(missing_ok=True)
+
+
 def check_status() -> None:
     ENGINES_DIR.mkdir(parents=True, exist_ok=True)
     ffmpeg_exe = ENGINES_DIR / "ffmpeg.exe"
+    whisper_exe = ENGINES_DIR / "whisper-cli.exe"
+    if not whisper_exe.exists():
+        whisper_exe = ENGINES_DIR / "main.exe"
     lo_dir = ENGINES_DIR / "LibreOfficePortable"
 
     print("\n--- Vert Engines Status ---")
     print(f"Directory: {ENGINES_DIR}")
     print(f"ffmpeg.exe:             {'[FOUND]' if ffmpeg_exe.exists() else '[MISSING]'}")
+    print(f"whisper.cpp (Speech):   {'[FOUND]' if whisper_exe.exists() else '[MISSING]'}")
     print(f"LibreOfficePortable:    {'[FOUND]' if lo_dir.exists() else '[MISSING] (or system MS Office fallback)'}")
     print("---------------------------\n")
 
@@ -107,15 +153,19 @@ def main():
     parser = argparse.ArgumentParser(description="Download & verify Vert external engines")
     parser.add_argument("--check", action="store_true", help="Check engine status")
     parser.add_argument("--ffmpeg", action="store_true", help="Download/extract ffmpeg")
+    parser.add_argument("--whisper", action="store_true", help="Download/extract whisper.cpp")
     parser.add_argument("--all", action="store_true", help="Setup all required engines")
     args = parser.parse_args()
 
-    if args.check or (not args.ffmpeg and not args.all):
+    if args.check or (not args.ffmpeg and not args.whisper and not args.all):
         check_status()
         return
 
     if args.ffmpeg or args.all:
         setup_ffmpeg()
+
+    if args.whisper or args.all:
+        setup_whisper()
 
     check_status()
 

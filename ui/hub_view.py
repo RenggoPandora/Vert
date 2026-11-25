@@ -78,6 +78,13 @@ TOOLS: list[ToolDefinition] = [
     ),
     # Media
     ToolDefinition(
+        tool_id="audio_transcription",
+        title="Audio to Text",
+        description="Transcribe speech offline with whisper.cpp into TXT, SRT, VTT, or JSON.",
+        category="Media",
+        color_accent="#7C3AED",
+    ),
+    ToolDefinition(
         tool_id="media_converter",
         title="Audio & Video",
         description="Extract MP3/WAV from video, convert MP4/MKV, or create GIFs.",
@@ -92,7 +99,14 @@ TOOLS: list[ToolDefinition] = [
         category="Data",
         color_accent="#0D9488",
     ),
-    # Universal
+    # Compression & Universal
+    ToolDefinition(
+        tool_id="file_compression",
+        title="File Compression",
+        description="Target-size compression for images, PDFs, videos, and archives.",
+        category="All",
+        color_accent="#059669",
+    ),
     ToolDefinition(
         tool_id="batch_converter",
         title="Universal Batch",

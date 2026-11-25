@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Optional
 from PySide6.QtCore import QThreadPool, Qt, Signal
 from PySide6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QFileDialog,
     QFrame,
@@ -138,18 +139,23 @@ class QueueView(QWidget):
         # Output options bar
         output_bar = QHBoxLayout()
         self.output_label = QLabel("Output Folder: Same as source file")
-        self.output_label.setStyleSheet("color: #94A3B8;")
+        self.output_label.setStyleSheet("color: #94A3B8; font-weight: bold;")
 
-        self.choose_out_btn = QPushButton("Select Output Folder")
+        self.choose_out_btn = QPushButton("Select Output Folder...")
         self.choose_out_btn.clicked.connect(self._on_choose_output_dir)
 
         self.reset_out_btn = QPushButton("Reset to Source")
         self.reset_out_btn.clicked.connect(self._on_reset_output_dir)
         self.reset_out_btn.setVisible(False)
 
+        self.prompt_save_cb = QCheckBox("Always ask where to save (Save As...)")
+        self.prompt_save_cb.setStyleSheet("color: #E2E8F0; font-size: 11px;")
+
         output_bar.addWidget(self.output_label)
         output_bar.addWidget(self.choose_out_btn)
         output_bar.addWidget(self.reset_out_btn)
+        output_bar.addSpacing(16)
+        output_bar.addWidget(self.prompt_save_cb)
         output_bar.addStretch()
         main_layout.addLayout(output_bar)
 
@@ -286,6 +292,17 @@ class QueueView(QWidget):
             target_ext = data["combo"].currentData()
             dest_dir = self.custom_output_dir if self.custom_output_dir else src.parent
             dst = get_safe_output_path(dest_dir, src.name, target_ext)
+
+            if self.prompt_save_cb.isChecked():
+                chosen_dst, _ = QFileDialog.getSaveFileName(
+                    self,
+                    f"Choose Destination for {src.name}",
+                    str(dst),
+                    f"Target File (*{target_ext});;All Files (*.*)",
+                )
+                if not chosen_dst:
+                    continue
+                dst = Path(chosen_dst)
 
             job = ConversionJob(job_id=jid, src_path=src, dst_path=dst)
             task = ConversionTask(job)

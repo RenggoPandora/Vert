@@ -10,8 +10,13 @@ datas = [
     (str(root_dir / 'assets' / 'fonts'), 'assets/fonts'),
     (str(root_dir / 'Vert.png'), '.'),
     (str(root_dir / 'Vert.ico'), '.'),
-    (str(root_dir / 'engines' / 'ffmpeg.exe'), 'engines'),
 ]
+
+engines_dir = root_dir / 'engines'
+if engines_dir.exists():
+    for f in engines_dir.glob('*'):
+        if f.is_file() and f.name != '.gitkeep':
+            datas.append((str(f), 'engines'))
 
 a = Analysis(
     ['main.py'],
