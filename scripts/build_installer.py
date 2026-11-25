@@ -42,11 +42,7 @@ def find_inno_compiler() -> Path | None:
 
 def run_tests():
     log("Running automated test suite")
-    pytest_bin = ROOT_DIR / "venv" / "Scripts" / "pytest.exe"
-    if not pytest_bin.exists():
-        pytest_bin = "pytest"
-
-    cmd = [str(pytest_bin), "-v"]
+    cmd = [sys.executable, "-m", "pytest", "-v"]
     res = subprocess.run(cmd, cwd=str(ROOT_DIR))
     if res.returncode != 0:
         print("\nERROR: Tests failed! Aborting build.")
@@ -56,12 +52,8 @@ def run_tests():
 
 def build_pyinstaller():
     log("Building PyInstaller standalone executable")
-    pyinstaller_bin = ROOT_DIR / "venv" / "Scripts" / "pyinstaller.exe"
-    if not pyinstaller_bin.exists():
-        pyinstaller_bin = "pyinstaller"
-
     spec_file = ROOT_DIR / "vert.spec"
-    cmd = [str(pyinstaller_bin), "--noconfirm", str(spec_file)]
+    cmd = [sys.executable, "-m", "PyInstaller", "--noconfirm", str(spec_file)]
     res = subprocess.run(cmd, cwd=str(ROOT_DIR))
     if res.returncode != 0:
         print("\nERROR: PyInstaller build failed!")
