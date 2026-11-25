@@ -42,7 +42,7 @@ from core.transcription.models import (
     get_model_path,
     is_model_installed,
 )
-from core.transcription.worker import TranscriptionTask
+from core.transcription.worker import ModelDownloadTask, TranscriptionTask
 from ui.icons import get_icon, get_pixmap
 
 LANGUAGES = [
@@ -126,6 +126,7 @@ class AudioTranscriptionView(QWidget):
         self.current_audio_path: Optional[Path] = None
         self.last_result: Optional[TranscriptionResult] = None
         self.current_task: Optional[TranscriptionTask] = None
+        self._download_task: Optional[ModelDownloadTask] = None
 
         self._init_ui()
         self._refresh_model_status()
@@ -332,6 +333,13 @@ class AudioTranscriptionView(QWidget):
             self.model_action_btn.setIcon(get_icon("download", color="#2563EB", size=14))
 
     def _on_model_action_clicked(self):
+        # If currently downloading, button acts as Cancel Download
+        if self._download_task:
+            self._download_task.cancel()
+            self.status_msg_lbl.setText("Cancelling download...")
+            self.model_action_btn.setEnabled(False)
+            return
+
         model_name = self.model_combo.currentData()
         if not model_name:
             return
@@ -361,60 +369,50 @@ class AudioTranscriptionView(QWidget):
                 self._download_model_async(model_name)
 
     def _download_model_async(self, model_name: str):
-        self.model_action_btn.setEnabled(False)
+        self.model_action_btn.setText("Cancel Download")
+        self.model_action_btn.setIcon(get_icon("trash", color="#DC2626", size=14))
+        self.model_action_btn.setEnabled(True)
+        self.model_combo.setEnabled(False)
+
         self.progress_bar.setVisible(True)
         self.progress_bar.setValue(0)
         self.status_msg_lbl.setText(f"Connecting to download '{model_name}' model...")
 
-        class DownloadRunner(QObject):
-            progress = Signal(float, str)
-            finished = Signal()
-            error = Signal(str)
+        self._download_task = ModelDownloadTask(model_name)
+        self._download_task.signals.progress.connect(self._on_download_progress)
+        self._download_task.signals.finished.connect(self._on_download_finished)
+        self._download_task.signals.error.connect(self._on_download_error)
+        self._download_task.signals.cancelled.connect(self._on_download_cancelled)
 
-            def __init__(self, name: str):
-                super().__init__()
-                self.name = name
-
-            def run(self):
-                try:
-                    download_model(
-                        self.name,
-                        progress_callback=lambda p, m: self.progress.emit(p, m),
-                    )
-                    self.finished.emit()
-                except Exception as exc:
-                    self.error.emit(str(exc))
-
-        runner = DownloadRunner(model_name)
-        runner.progress.connect(self._on_download_progress)
-        runner.finished.connect(self._on_download_finished)
-        runner.error.connect(self._on_download_error)
-
-        from PySide6.QtCore import QRunnable
-        class RunnableWrapper(QRunnable):
-            def run(self):
-                runner.run()
-
-        QThreadPool.globalInstance().start(RunnableWrapper())
+        QThreadPool.globalInstance().start(self._download_task)
 
     def _on_download_progress(self, percent: float, msg: str):
         self.progress_bar.setValue(int(percent))
         self.status_msg_lbl.setText(msg)
 
-    def _on_download_finished(self):
+    def _on_download_finished(self, model_name: str, path: object):
+        self._download_task = None
+        self.model_combo.setEnabled(True)
         self.progress_bar.setVisible(False)
-        self.model_action_btn.setEnabled(True)
-        self.status_msg_lbl.setText("Model downloaded successfully!")
+        self.status_msg_lbl.setText(f"Model '{model_name}' downloaded successfully!")
         self._refresh_model_status()
         self._update_start_button_state()
         QMessageBox.information(self, "Download Complete", "Speech model downloaded and ready for offline use.")
 
     def _on_download_error(self, err_msg: str):
+        self._download_task = None
+        self.model_combo.setEnabled(True)
         self.progress_bar.setVisible(False)
-        self.model_action_btn.setEnabled(True)
         self.status_msg_lbl.setText(f"Download failed: {err_msg}")
         self._refresh_model_status()
         QMessageBox.warning(self, "Download Failed", f"Failed to download model:\n{err_msg}")
+
+    def _on_download_cancelled(self):
+        self._download_task = None
+        self.model_combo.setEnabled(True)
+        self.progress_bar.setVisible(False)
+        self.status_msg_lbl.setText("Download cancelled.")
+        self._refresh_model_status()
 
     def _update_start_button_state(self):
         has_file = self.current_audio_path is not None and self.current_audio_path.exists()

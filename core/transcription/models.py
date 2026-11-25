@@ -137,47 +137,73 @@ def download_model(
             progress_callback(100.0, "Model already installed.")
         return final_path
 
-    req = urllib.request.Request(
+    # Candidate download URLs in priority order (official Hugging Face -> CDN mirror)
+    urls = [
         info.url,
-        headers={"User-Agent": "Vert-Desktop-SpeechRecognition/1.0"},
-    )
+        f"https://hf-mirror.com/ggerganov/whisper.cpp/resolve/main/{info.filename}",
+    ]
 
-    try:
-        with urllib.request.urlopen(req, timeout=30) as response:
-            total_size = int(response.headers.get("content-length", info.size_mb * 1024 * 1024))
-            downloaded = 0
-            block_size = 1024 * 128  # 128 KB chunks
+    last_exc = None
+    for url in urls:
+        if is_cancelled and is_cancelled():
+            raise InterruptedError("Download cancelled by user.")
 
-            with open(temp_path, "wb") as out_file:
-                while True:
-                    if is_cancelled and is_cancelled():
-                        out_file.close()
-                        if temp_path.exists():
-                            temp_path.unlink()
-                        raise InterruptedError("Download cancelled by user.")
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Vert/1.1.0",
+                "Accept": "*/*",
+            },
+        )
 
-                    chunk = response.read(block_size)
-                    if not chunk:
-                        break
-                    out_file.write(chunk)
-                    downloaded += len(chunk)
+        try:
+            with urllib.request.urlopen(req, timeout=15) as response:
+                total_size = int(response.headers.get("content-length") or (info.size_mb * 1024 * 1024))
+                downloaded = 0
+                block_size = 1024 * 256  # 256 KB chunks
 
-                    if progress_callback and total_size > 0:
-                        pct = min(100.0, (downloaded / total_size) * 100)
-                        mb_curr = downloaded / (1024 * 1024)
-                        mb_tot = total_size / (1024 * 1024)
-                        progress_callback(pct, f"Downloading: {mb_curr:.1f} / {mb_tot:.1f} MB ({pct:.0f}%)")
+                with open(temp_path, "wb") as out_file:
+                    while True:
+                        if is_cancelled and is_cancelled():
+                            out_file.close()
+                            if temp_path.exists():
+                                temp_path.unlink()
+                            raise InterruptedError("Download cancelled by user.")
 
-        if temp_path.exists():
-            if final_path.exists():
-                final_path.unlink()
-            temp_path.rename(final_path)
+                        chunk = response.read(block_size)
+                        if not chunk:
+                            break
+                        out_file.write(chunk)
+                        downloaded += len(chunk)
 
-        if progress_callback:
-            progress_callback(100.0, "Download complete.")
-        return final_path
+                        if progress_callback and total_size > 0:
+                            pct = min(100.0, (downloaded / total_size) * 100)
+                            mb_curr = downloaded / (1024 * 1024)
+                            mb_tot = total_size / (1024 * 1024)
+                            progress_callback(pct, f"Downloading: {mb_curr:.1f} / {mb_tot:.1f} MB ({pct:.0f}%)")
 
-    except Exception:
-        if temp_path.exists():
-            temp_path.unlink()
-        raise
+            if temp_path.exists() and temp_path.stat().st_size > 1024 * 1024:
+                if final_path.exists():
+                    final_path.unlink()
+                temp_path.rename(final_path)
+
+                if progress_callback:
+                    progress_callback(100.0, "Download complete.")
+                return final_path
+
+        except InterruptedError:
+            if temp_path.exists():
+                temp_path.unlink()
+            raise
+        except Exception as exc:
+            last_exc = exc
+            if temp_path.exists():
+                try:
+                    temp_path.unlink()
+                except OSError:
+                    pass
+            continue
+
+    if temp_path.exists():
+        temp_path.unlink(missing_ok=True)
+    raise RuntimeError(f"Failed to download model from mirrors: {last_exc}")

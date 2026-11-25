@@ -27,6 +27,7 @@ from ui.images_to_pdf_view import ImagesToPdfView
 from ui.pdf_tools_view import PdfToolsView
 from ui.queue_view import QueueView
 from ui.theme import ThemeMode, get_stylesheet
+from ui.update_dialog import UpdateDialog
 import webbrowser
 from PySide6.QtCore import QThreadPool
 from PySide6.QtWidgets import QMessageBox
@@ -195,17 +196,8 @@ class MainWindow(QMainWindow):
         self.update_btn.setText("Check for Updates")
 
         if has_update:
-            notes = f"\n\nRelease Notes:\n{body[:300]}..." if body else ""
-            reply = QMessageBox.information(
-                self,
-                "Update Available!",
-                f"A new version of Vert ({tag}) is available!\n"
-                f"Your current version: v{__version__}{notes}\n\n"
-                f"Would you like to open the download page?",
-                QMessageBox.Yes | QMessageBox.No,
-            )
-            if reply == QMessageBox.Yes:
-                webbrowser.open(url)
+            dlg = UpdateDialog(new_tag=tag, download_url=url, release_body=body, parent=self)
+            dlg.exec()
         else:
             QMessageBox.information(
                 self,

@@ -33,3 +33,19 @@ def test_check_github_releases_empty_repo_handles_404():
         assert has_update is False
         assert tag == f"v{__version__}"
 
+
+def test_update_download_task_signals():
+    from core.updater import UpdateDownloadTask
+    task = UpdateDownloadTask("https://example.com/dummy.exe")
+    assert task.download_url == "https://example.com/dummy.exe"
+    task.cancel()
+    assert task._is_cancelled is True
+
+
+def test_update_dialog_creation(qapp):
+    from ui.update_dialog import UpdateDialog
+    dlg = UpdateDialog("v1.1.0", "https://example.com/setup.exe", "Release notes here")
+    assert dlg.new_tag == "v1.1.0"
+    assert "v1.1.0" in dlg.windowTitle() or "Software Update" in dlg.windowTitle()
+    dlg.close()
+

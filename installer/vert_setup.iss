@@ -23,6 +23,9 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\Vert
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
+UsePreviousAppDir=yes
+CloseApplications=yes
+RestartApplications=no
 LicenseFile=
 OutputDir=..\dist
 OutputBaseFilename=Vert_Setup
@@ -54,4 +57,4 @@ Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppIcoName}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall

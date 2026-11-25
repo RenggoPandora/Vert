@@ -1,9 +1,13 @@
 """On-demand update checker using GitHub Releases API (zero startup calls)."""
 
 import json
+import os
+from pathlib import Path
+import subprocess
+import tempfile
+from typing import Callable, Optional, Tuple
 import urllib.error
 import urllib.request
-from typing import Optional, Tuple
 from PySide6.QtCore import QObject, QRunnable, Signal
 
 from core.version import GITHUB_REPO, __version__
@@ -73,6 +77,97 @@ def check_github_releases(timeout: int = 5) -> Tuple[bool, str, str, str]:
 class UpdateSignals(QObject):
     checked = Signal(bool, str, str, str)  # has_update, tag, url, body
     failed = Signal(str)                   # error message
+
+
+class UpdateDownloadSignals(QObject):
+    started = Signal()
+    progress = Signal(float, str)          # percent, status message
+    finished = Signal(str)                 # downloaded_installer_path
+    failed = Signal(str)                   # error message
+    cancelled = Signal()
+
+
+class UpdateDownloadTask(QRunnable):
+    """Downloads installer exe directly to system %TEMP% directory with progress tracking."""
+
+    def __init__(self, download_url: str):
+        super().__init__()
+        self.download_url = download_url
+        self.signals = UpdateDownloadSignals()
+        self.setAutoDelete(False)
+        self._is_cancelled = False
+
+    def cancel(self):
+        self._is_cancelled = True
+
+    def run(self):
+        self.signals.started.emit()
+        temp_dir = Path(tempfile.gettempdir())
+        dest_exe = temp_dir / "Vert_Setup_Update.exe"
+        part_exe = temp_dir / "Vert_Setup_Update.part"
+
+        req = urllib.request.Request(
+            self.download_url,
+            headers={
+                "User-Agent": f"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Vert/{__version__}",
+                "Accept": "*/*",
+            },
+        )
+
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                total_bytes = int(resp.headers.get("content-length") or (170 * 1024 * 1024))
+                downloaded = 0
+                block_size = 1024 * 256  # 256 KB
+
+                with open(part_exe, "wb") as f:
+                    while True:
+                        if self._is_cancelled:
+                            f.close()
+                            if part_exe.exists():
+                                part_exe.unlink()
+                            self.signals.cancelled.emit()
+                            return
+
+                        chunk = resp.read(block_size)
+                        if not chunk:
+                            break
+                        f.write(chunk)
+                        downloaded += len(chunk)
+
+                        pct = min(100.0, (downloaded / total_bytes) * 100) if total_bytes > 0 else 0
+                        mb_curr = downloaded / (1024 * 1024)
+                        mb_tot = total_bytes / (1024 * 1024)
+                        self.signals.progress.emit(
+                            pct,
+                            f"Downloading update: {mb_curr:.1f} / {mb_tot:.1f} MB ({pct:.0f}%)",
+                        )
+
+            if part_exe.exists():
+                if dest_exe.exists():
+                    try:
+                        dest_exe.unlink()
+                    except OSError:
+                        pass
+                part_exe.rename(dest_exe)
+
+            self.signals.finished.emit(str(dest_exe))
+
+        except Exception as exc:
+            if part_exe.exists():
+                try:
+                    part_exe.unlink()
+                except OSError:
+                    pass
+            self.signals.failed.emit(str(exc))
+
+
+def launch_installer_and_exit(installer_path: str):
+    """Executes downloaded installer silently and restarts the application without manual prompts."""
+    # /SILENT /CLOSEAPPLICATIONS ensures old running instance is closed cleanly and files replaced
+    cmd = [installer_path, "/SILENT", "/CLOSEAPPLICATIONS"]
+    creation_flags = 0x08000000 if os.name == "nt" else 0  # CREATE_NO_WINDOW or detach
+    subprocess.Popen(cmd, creationflags=creation_flags)
 
 
 class UpdateCheckTask(QRunnable):
