@@ -12,6 +12,8 @@ from core.transcription.audio_preprocessor import preprocess_audio_for_whisper
 from core.transcription.exporters import TranscriptSegment, TranscriptionResult
 from core.transcription.models import get_model_path, is_model_installed
 
+import sys
+
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 ENGINES_DIR = ROOT_DIR / "engines"
 
@@ -22,14 +24,42 @@ TIMESTAMP_LINE_REGEX = re.compile(
 
 
 def find_whisper_binary() -> Optional[Path]:
-    """Find whisper.cpp CLI executable in engines/ or system PATH."""
-    candidates = [
+    """Find whisper.cpp CLI executable in engines/ or system PATH across dev & frozen environments."""
+    candidates: list[Path] = []
+
+    # 1. PyInstaller frozen temporary extraction directory
+    if hasattr(sys, "_MEIPASS"):
+        meipass_engines = Path(sys._MEIPASS) / "engines"
+        candidates.extend([
+            meipass_engines / "whisper-cli.exe",
+            meipass_engines / "main.exe",
+        ])
+
+    # 2. Executable parent directory and _internal/engines
+    exe_dir = Path(sys.executable).parent
+    candidates.extend([
+        exe_dir / "_internal" / "engines" / "whisper-cli.exe",
+        exe_dir / "_internal" / "engines" / "main.exe",
+        exe_dir / "engines" / "whisper-cli.exe",
+        exe_dir / "engines" / "main.exe",
+    ])
+
+    # 3. Source repository ENGINES_DIR
+    candidates.extend([
         ENGINES_DIR / "whisper-cli.exe",
         ENGINES_DIR / "whisper.exe",
         ENGINES_DIR / "main.exe",
         ENGINES_DIR / "whisper-cli",
         ENGINES_DIR / "whisper",
-    ]
+    ])
+
+    # 4. User data fallback directory ~/.vert/engines
+    user_engines = Path.home() / ".vert" / "engines"
+    candidates.extend([
+        user_engines / "whisper-cli.exe",
+        user_engines / "main.exe",
+    ])
+
     for candidate in candidates:
         if candidate.exists() and candidate.is_file():
             return candidate
@@ -127,6 +157,9 @@ def run_transcription(
             cmd.extend(["-l", "auto"])
 
         creation_flags = 0x08000000 if os.name == "nt" else 0  # CREATE_NO_WINDOW
+        env = os.environ.copy()
+        env["PATH"] = str(whisper_bin.parent) + os.pathsep + env.get("PATH", "")
+
         proc = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
@@ -134,6 +167,8 @@ def run_transcription(
             text=True,
             encoding="utf-8",
             errors="replace",
+            cwd=str(whisper_bin.parent),
+            env=env,
             creationflags=creation_flags,
         )
 

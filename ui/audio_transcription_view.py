@@ -42,7 +42,7 @@ from core.transcription.models import (
     get_model_path,
     is_model_installed,
 )
-from core.transcription.worker import ModelDownloadTask, TranscriptionTask
+from core.transcription.worker import EngineDownloadTask, ModelDownloadTask, TranscriptionTask
 from ui.icons import get_icon, get_pixmap
 
 LANGUAGES = [
@@ -426,13 +426,15 @@ class AudioTranscriptionView(QWidget):
 
         whisper_bin = find_whisper_binary()
         if not whisper_bin:
-            QMessageBox.warning(
+            reply = QMessageBox.question(
                 self,
                 "whisper.cpp Engine Required",
-                "whisper.cpp executable was not found in engines/ or system PATH.\n\n"
-                "Please place whisper-cli.exe in the engines/ directory or run:\n"
-                "python scripts/download_engines.py --whisper",
+                "The whisper.cpp speech recognition engine (~8.7 MB) is required for local offline transcription.\n\n"
+                "Would you like to download and install it automatically now?",
+                QMessageBox.Yes | QMessageBox.No,
             )
+            if reply == QMessageBox.Yes:
+                self._download_engine_async()
             return
 
         model_name = self.model_combo.currentData()
@@ -456,6 +458,35 @@ class AudioTranscriptionView(QWidget):
         self.current_task.signals.cancelled.connect(self._on_transcribe_cancelled)
 
         QThreadPool.globalInstance().start(self.current_task)
+
+    def _download_engine_async(self):
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setValue(5)
+        self.status_msg_lbl.setText("Downloading whisper.cpp engine...")
+        self.start_btn.setEnabled(False)
+
+        task = EngineDownloadTask()
+        task.signals.progress.connect(lambda p, m: (self.progress_bar.setValue(int(p)), self.status_msg_lbl.setText(m)))
+        task.signals.finished.connect(self._on_engine_download_finished)
+        task.signals.error.connect(self._on_engine_download_error)
+        self._engine_task = task
+        QThreadPool.globalInstance().start(task)
+
+    def _on_engine_download_finished(self, bin_path):
+        self.progress_bar.setVisible(False)
+        self.status_msg_lbl.setText("whisper.cpp engine ready!")
+        self._update_start_button_state()
+        QMessageBox.information(
+            self,
+            "Engine Ready",
+            "whisper.cpp engine installed successfully! Click 'Start Transcription' to begin.",
+        )
+
+    def _on_engine_download_error(self, err_msg: str):
+        self.progress_bar.setVisible(False)
+        self.status_msg_lbl.setText(f"Engine setup failed: {err_msg}")
+        self._update_start_button_state()
+        QMessageBox.critical(self, "Engine Setup Error", f"Failed to setup whisper.cpp engine:\n\n{err_msg}")
 
     def _cancel_transcription(self):
         if self.current_task:

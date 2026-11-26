@@ -21,7 +21,7 @@ FFMPEG_URL = (
 )
 
 WHISPER_URL = (
-    "https://github.com/ggerganov/whisper.cpp/releases/download/v1.7.4/whisper-bin-x64.zip"
+    "https://github.com/ggml-org/whisper.cpp/releases/download/b5907/whisper-bin-x64.zip"
 )
 
 
@@ -103,27 +103,24 @@ def setup_whisper() -> bool:
         log(f"whisper-cli.exe already present: {target_whisper}")
         return True
 
-    # Check for main.exe as fallback
-    if (ENGINES_DIR / "main.exe").exists():
-        log(f"whisper engine already present as main.exe")
-        return True
-
     zip_tmp = ENGINES_DIR / "whisper_temp.zip"
     try:
         download_file(WHISPER_URL, zip_tmp)
-        log("Extracting whisper binaries...")
+        log("Extracting whisper binaries and runtime DLLs...")
         with zipfile.ZipFile(zip_tmp, "r") as zf:
             for member in zf.namelist():
-                name = Path(member).name.lower()
-                if name in ("whisper-cli.exe", "main.exe", "whisper.dll", "ggml.dll"):
-                    dest = ENGINES_DIR / Path(member).name
-                    with zf.open(member) as src, open(dest, "wb") as dst:
-                        shutil.copyfileobj(src, dst)
-        if target_whisper.exists() or (ENGINES_DIR / "main.exe").exists():
-            log(f"whisper engine extracted successfully into {ENGINES_DIR}")
+                # Extract whisper-cli.exe and all required DLLs from Release/
+                if member.startswith("Release/"):
+                    fname = Path(member).name
+                    if fname.endswith(".dll") or fname in ("whisper-cli.exe", "main.exe"):
+                        dest = ENGINES_DIR / fname
+                        with zf.open(member) as src, open(dest, "wb") as dst:
+                            shutil.copyfileobj(src, dst)
+        if target_whisper.exists():
+            log(f"whisper engine and DLLs extracted successfully into {ENGINES_DIR}")
             return True
         else:
-            log("Notice: whisper executable not found directly in root of archive.")
+            log("Error: whisper-cli.exe not found in extracted files.")
             return False
     except Exception as exc:
         log(f"Failed to setup whisper engine: {exc}")

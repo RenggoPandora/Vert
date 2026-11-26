@@ -133,3 +133,19 @@ def test_exporters(tmp_path):
     assert json_data["model"] == "base"
     assert len(json_data["segments"]) == 2
     assert json_data["segments"][0]["start_ms"] == 0
+
+
+def test_find_whisper_binary_finds_bundled_engine():
+    from core.transcription.engine import find_whisper_binary
+    wb = find_whisper_binary()
+    assert wb is not None
+    assert wb.exists()
+    assert wb.name in ("whisper-cli.exe", "main.exe")
+
+
+def test_engine_download_task_cancel():
+    from core.transcription.worker import EngineDownloadTask
+    task = EngineDownloadTask()
+    assert not task._is_cancelled
+    task.cancel()
+    assert task._is_cancelled

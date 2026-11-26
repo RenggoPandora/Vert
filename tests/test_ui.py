@@ -182,9 +182,19 @@ def test_minimalist_splash_screen(qapp):
     assert splash.track._progress == 0.0
 
     splash.track.set_progress(0.75)
-    assert splash.track.get_progress() == 0.75
-
+    assert splash.track._progress == 0.75
     splash.close()
+
+
+def test_main_window_update_badge(qapp):
+    from ui.main_window import MainWindow
+
+    win = MainWindow()
+    assert "●" not in win.update_btn.text()
+    win._set_update_button_badge("v1.1.2")
+    assert "●" in win.update_btn.text()
+    assert "v1.1.2" in win.update_btn.toolTip()
+    win.close()
 
 
 

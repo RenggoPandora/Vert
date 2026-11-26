@@ -1,7 +1,7 @@
 """Main application window for Vert with responsive views and dual-theme switcher."""
 
 from pathlib import Path
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QThreadPool, QTimer
 from PySide6.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -41,10 +41,14 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(780, 520)
 
         self.current_theme = ThemeMode.DARK
+        self.available_update = None
 
         self._init_ui()
         self._apply_theme()
         self._update_engine_status()
+
+        # Check for updates silently in background on launch
+        QTimer.singleShot(2000, self._check_updates_background)
 
     def _init_ui(self):
         central_widget = QWidget()
@@ -182,7 +186,33 @@ class MainWindow(QMainWindow):
         else:
             self.stack.setCurrentWidget(self.queue_view)
 
+    def _check_updates_background(self):
+        """Silently check for releases in background on startup to show notification dot."""
+        task = UpdateCheckTask()
+        task.signals.checked.connect(self._on_background_update_checked)
+        QThreadPool.globalInstance().start(task)
+
+    def _on_background_update_checked(self, has_update: bool, tag: str, url: str, body: str):
+        if has_update:
+            self.available_update = (tag, url, body)
+            self._set_update_button_badge(tag)
+
+    def _set_update_button_badge(self, tag: str):
+        """Displays vibrant notification dot on the update button when a new release is available."""
+        self.update_btn.setText("Check for Updates  ●")
+        self.update_btn.setStyleSheet(
+            "QPushButton { color: #F8FAFC; border: 1.5px solid #EF4444; border-radius: 6px; padding: 6px 12px; font-weight: bold; } "
+            "QPushButton:hover { background-color: rgba(239, 68, 68, 0.15); }"
+        )
+        self.update_btn.setToolTip(f"Version {tag} is available! Click to update now.")
+
     def check_for_updates(self):
+        if self.available_update:
+            tag, url, body = self.available_update
+            dlg = UpdateDialog(new_tag=tag, download_url=url, release_body=body, parent=self)
+            dlg.exec()
+            return
+
         self.update_btn.setEnabled(False)
         self.update_btn.setText("Checking...")
 
@@ -193,12 +223,16 @@ class MainWindow(QMainWindow):
 
     def _on_update_checked(self, has_update: bool, tag: str, url: str, body: str):
         self.update_btn.setEnabled(True)
-        self.update_btn.setText("Check for Updates")
 
         if has_update:
+            self.available_update = (tag, url, body)
+            self._set_update_button_badge(tag)
             dlg = UpdateDialog(new_tag=tag, download_url=url, release_body=body, parent=self)
             dlg.exec()
         else:
+            self.update_btn.setText("Check for Updates")
+            self.update_btn.setStyleSheet("")
+            self.update_btn.setToolTip("Check GitHub for the latest release")
             QMessageBox.information(
                 self,
                 "Up to Date",
@@ -207,7 +241,8 @@ class MainWindow(QMainWindow):
 
     def _on_update_failed(self, err_msg: str):
         self.update_btn.setEnabled(True)
-        self.update_btn.setText("Check for Updates")
+        if not self.available_update:
+            self.update_btn.setText("Check for Updates")
         QMessageBox.warning(
             self,
             "Update Check Failed",
