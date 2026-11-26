@@ -3,7 +3,7 @@
 ; Generates standalone 'Vert_Setup.exe' with Desktop & Start Menu shortcuts
 
 #define MyAppName "Vert"
-#define MyAppVersion "1.1.0"
+#define MyAppVersion "1.1.1"
 #define MyAppPublisher "Hadora Works"
 #define MyAppURL "https://github.com/RenggoPandora/Vert"
 #define MyAppExeName "Vert.exe"
